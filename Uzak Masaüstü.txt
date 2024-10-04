@@ -1,0 +1,132 @@
+MemoBI
+nD1NuAxK
+
+--MSSQL
+USER=BRAPOR
+PSW=A5V!ewS?@PNo
+
+--172.22.163.26
+BiRapor
+Memobi22
+
+
+Genel Müdürlük Printer Servis PIN Numaranız: 34579
+
+--MSTR Bağlantı Bilgileri
+--Server Adı	İp adresi	    Kullanıcı Adı	Password
+BiMstrWeb	    172.22.163.23	ayildirim	    @yildirim**1
+BiMstrIntSrv	172.22.163.24	ayildirim	    @yildirim**1
+BiPostgresqlTst	172.22.163.25	ayildirim	    @yildirim**1
+BiPostgresqlPrd	172.22.163.28	ayildirim	    @yildirim**1
+BiSSISServer  	172.22.163.26 	ayildirim	    @yildirim**1
+BiTerm	        172.22.163.27	ayildirim	    @yildirim**1
+
+BiMstrWeb		172.22.163.23	mstradmin		Marmara1*
+BiMstrIntSrv	172.22.163.24	mstradmin		Marmara1*
+BiPostgresqlTst	172.22.163.25	mstradmin		Marmara1*
+BiSSISServer	172.22.163.26	SSISadmin		Marmara1*
+BiTerm			172.22.163.27	SSISadmin		Marmara1*
+BiPostgresqlPrd	172.22.163.28	mstradmin		Marmara1*
+--MSTR Bağlantı Bilgileri END
+
+--Pdks Server--
+DNS: Pdks-p     10.100.1.161    memorial\pdksads 30*129df*3!
+--Pdks Server End--
+
+
+--Postgre Backup Location--
+Path : \\sqlnas01.memorial.com.tr\msg-sqlbackup\BI_BACKUP  
+User : Memorial\bibakadmn
+Pass : Marmara1!
+
+--PMM
+https://10.100.4.232
+user : admin
+password : Ankara06+
+
+
+
+--Postgre--
+1) alper_kaan_yildirim
+MOJ5grm3C
+2)link_user
+L4n4KS5r
+3)bi_romania
+Km23fN43.S
+4)memobi1
+hm54ec5e6
+5)memobi2
+mw652efc2
+6)kurumsal_yazilim
+23e6s.5G1
+7)merve_dursun 
+h@5BZ38k
+8)fatma_yurdaer 
+>@15Z2hh
+
+
+--test ortamı 
+1)memobi1
+e56DjaBi65
+2)memobi2
+B12iSO5ft 
+3)kurumsal_yazilim
+23e6s.5G1
+
+--MobileApp--
+IP = 172.31.1.3 
+Username : crm
+Pass : N@4Y3BuJm1
+
+--Postgre END--
+
+
+A.D ->40828603854
+Ad4082
+
+--Bios
+jwYdE5Q3
+
+--Cyberark
+1)cark.obase1
+hQuvAcKk7LKj!Y4
+2)cark.mersis1
+4CBsGJ6biR
+3)cark.smartmind1
+QxEASjLyH0
+4)cark.smartmind2
+4CBsGJ6biR
+
+Development Makinası
+172.22.163.29 ayildirim / Dba2024*
+Danışman makinası
+172.22.163.30 ayildirim / Dba2024*
+
+
+--Uzak Masaüstü
+172.22.168.27
+.\alperkaan
+Mars200*1!       
+
+ssis admin -->Marmara1*
+alperkaan  --> Mars200*1!  
+29 --> Dba2024*
+29 --> onur.yurtsever / Neu0622*
+Pusula -->alper.yildirim / Dba2023*
+
+
+Partners
+M@m0prt2021
+
+30643881148
+Manolya0814
+
+172.31.1.3
+MemorialMobileProd  
+Username : crm
+Pass : N@4Y3BuJm1
+
+
+1) Hata olarak açılmış MSD iş kayıtları için önce "İşlemde" yapıp sonra "Bug Created" yapınca MBI altında buna kayda bağlı kayıt oluşturuyor.
+2) Diğer türlerde açılmış iş kayıtları için önce İşlemde yapıp sonra "Fast Track" yapınca MBI altına taşınıyor. Ve kullanıcı da görmeye devam ediyor.     
+
