@@ -1,4 +1,4 @@
---FGO ISTANBUL SUBELERI2
+--FGO ISTANBUL SUBELERI
 SET enable_nestloop TO off;
 
 select distinct "SubeId","SubeAdi","Gruplama","Tarih","BolumAdi","ProtokolId",
