@@ -321,7 +321,7 @@ with cte as
 			 HC."HastaTCKimlikNo", 
 			 dcinsiyet."CinsiyetAdi", 
 			 HC."DogumTarihi", 
-			 CASE WHEN date_part('year',age(h."DogumTarihi")) >100 OR date_part('year',age(HC."DogumTarihi")) is NULL THEN '40' 
+			 CASE WHEN date_part('year',age(HC."DogumTarihi")) >100 OR date_part('year',age(HC."DogumTarihi")) is NULL THEN '40' 
 			 	   ELSE DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE) END AS "Yas", 
 			 CASE WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)<6 THEN 'A_0-5' 
  				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)<18 THEN 'B_6-17' 
@@ -335,26 +335,24 @@ with cte as
 				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE) BETWEEN 44 AND 58 THEN '3-X Kuşağı' 
 				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE) BETWEEN 24 AND 43 THEN '4-Y Kuşağı' 
 				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)BETWEEN 0 AND 23 THEN '5-Z Kuşağı' END AS "Kusak", 
-			 CASE WHEN DUlke."UlkeAdi" = 'Tanimsiz' AND h."UyrukId" = 1 THEN 'Türkiye' 
-			      WHEN DUlke."UlkeAdi" = 'Tanimsiz' AND h."UyrukId" <> 1 THEN 'Tanimsiz' 
+			 CASE WHEN DUlke."UlkeAdi" = 'Tanimsiz' AND HC."UyrukId" = 1 THEN 'Türkiye' 
+			      WHEN DUlke."UlkeAdi" = 'Tanimsiz' AND HC."UyrukId" <> 1 THEN 'Tanimsiz' 
 			ELSE DUlke."UlkeAdi" END AS "UlkeAdi", 
 			DIL."IlAdi", 
 			DILCE."IlceAdi", 
 			CASE WHEN HC."HastaTipiId" =2 THEN 1 ELSE 0 END AS "VipFlag", 
 			CASE WHEN IKP."TCKimlikNo" is NOT NULL THEN 1 ELSE 0 END AS "AktifPersonelFlag",
 			LPAD(regexp_replace(replace(replace(TRIM(HC."HastaTCKimlikNo"),'-',''),'','98'), '[[:alpha:]]','0','g')::varchar,11,'98') as "TCKN_Yeni"
-		FROM "MEMOBI_DWH"."DIMHasta" h
-		LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo"
-		LEFT JOIN "MEMOBI_DWH"."DIMCinsiyet" DCinsiyet ON DCinsiyet."CinsiyetId" =h."CinsiyetId" 
-		LEFT JOIN "MEMOBI_DWH"."DIMUlke" DUlke ON DUlke."UlkeId" =h."UlkeId" 
-		LEFT JOIN "MEMOBI_DWH"."DIMIl" DIL ON DIL."IlId" =h."IlIdEv" 
-		LEFT JOIN "MEMOBI_DWH"."DIMIlce" DILCE ON DILce."IlceId" =h."IlceIdEv" 
+		FROM "MEMOBI_DWH"."DIMHastaCurrent" HC
+		LEFT JOIN "MEMOBI_DWH"."DIMCinsiyet" DCinsiyet ON DCinsiyet."CinsiyetId" =HC."CinsiyetId" 
+		LEFT JOIN "MEMOBI_DWH"."DIMUlke" DUlke ON DUlke."UlkeId" =HC."UlkeId" 
+		LEFT JOIN "MEMOBI_DWH"."DIMIl" DIL ON DIL."IlId" =HC."IlIdEv" 
+		LEFT JOIN "MEMOBI_DWH"."DIMIlce" DILCE ON DILce."IlceId" =HC."IlceIdEv" 
 		LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1 = 1 
-		LEFT JOIN "MEMOBI_ODS_MRKZ"."IK_Personel" IKP ON IKP."TCKimlikNo" = h."HastaTCKimlikNo" AND IKP."State" =1 AND IKP."CikisTarihi" IS null AND IKP."Id">4 
-		WHERE h."IsCurrent" =1 
-			  AND h."HastaTCKimlikNo" is NOT null
+		LEFT JOIN "MEMOBI_ODS_MRKZ"."IK_Personel" IKP ON IKP."TCKimlikNo" = HC."HastaTCKimlikNo" AND IKP."State" =1 AND IKP."CikisTarihi" IS null AND IKP."Id">4 
+		WHERE  HC."HastaTCKimlikNo" is NOT null
 		)
-SELECT distinct "HastaMerkezId",
+SELECT "HastaMerkezId",
 	   (SUBSTR("HastaTCKimlikNo", 1, CAST(2 AS INTEGER)) || '*******' || CASE WHEN LENGTH("HastaTCKimlikNo")<2 THEN "HastaTCKimlikNo" ELSE SUBSTR("HastaTCKimlikNo", (LENGTH("HastaTCKimlikNo") - CAST(2 AS INTEGER) + 1)) END) AS "HastaTCKimlikNo",
 	   case when "CinsiyetAdi" is null then 'Cinsiyet Girilmemiş' else "CinsiyetAdi" end as "CinsiyetAdi", 
 	   "DogumTarihi", "Yas",
@@ -402,7 +400,7 @@ SELECT distinct "HastaMerkezId",
 FROM cte
 --HastaProtokol
 with cte as(
-SELECT distinct hc."HastaMerkezId", 
+SELECT hc."HastaMerkezId", 
 	   MAX(FP."IslemTarihi") AS "Max_ProtokolIslemTarih_024", 
 	   MIN(FP."IslemTarihi") AS "Min_ProtokolIslemTarih_024", 
 	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Lab%' and cast(fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end) as "Lab_Flag_03", 
@@ -565,10 +563,9 @@ SELECT distinct hc."HastaMerkezId",
 	   cast (now() AS timestamp) AS "ETLDate" 
 FROM "DIMHastaProtokol" FP 
 left JOIN "MEMOBI_DWH"."DIMBolum" DBolum ON DBolum."BolumId" = FP."BolumId"
-left join "MEMOBI_DWH"."DIMHasta" h on h."HastaId" = FP."HastaMerkezId"
-LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo" 
+LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId" 
 LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1 = 1 
-where cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" 
+where cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun"
 GROUP BY  hc."HastaMerkezId"
 )
 select * from cte
@@ -665,15 +662,14 @@ select HC."HastaMerkezId",
 	   min(case when FP."SubeId" in(7,23,88,103,105,136,147,158,44,52,62,155,159,176,228,2,36) then 1 when FP."SubeId" in (24,31,95) then 2 when FP."SubeId" in (37,79,80,116) then 23 end) as "SubeSegment", 
 	   cast (now() AS timestamp) AS "ETLDate" 
 from "FCTProtokol" FP 
-left join "MEMOBI_DWH"."DIMHasta" h on h."HastaId" = FP."HastaId"
-LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo"
+LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId"
 left join "MEMOBI_DWH"."DIMBolum" DBolum ON DBolum."BolumId" = FP."UygulayanBolumId"
 --LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1 = 1  
 --where cast (fp."IslemTarihi" as date) <= T."OncekiAySonGun" 
 group by FP."HastaMerkezId"
 --HastaFlag24
 with cte as(
-SELECT distinct hc."HastaMerkezId", 
+SELECT hc."HastaMerkezId", 
 	   MAX(FP."IslemTarihi") AS "Max_ProtokolIslemTarih_024", 
 	   MIN(FP."IslemTarihi") AS "Min_ProtokolIslemTarih_024", 
 	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Lab%' and cast(fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end) as "Lab_Flag_03", 
@@ -836,8 +832,7 @@ SELECT distinct hc."HastaMerkezId",
 	   cast (now() AS timestamp) AS "ETLDate" 
 FROM "DIMHastaProtokol" FP 
 left JOIN "MEMOBI_DWH"."DIMBolum" DBolum ON DBolum."BolumId" = FP."BolumId"
-left join "MEMOBI_DWH"."DIMHasta" h on h."HastaId" = FP."HastaMerkezId"
-LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo" 
+LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId"
 LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1 = 1 
 where cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" 
 GROUP BY FP."HastaMerkezId"
@@ -877,7 +872,7 @@ SELECT "HastaMerkezId",
 	   SUM("Total_Ciro_Kdvli_USD_Yatan") AS "Total_Ciro_Kdvsiz_USD_Yatan", 
 	   cast(now() AS timestamp) AS "ETLDate" 
 	   FROM 
-(SELECT distinct HC."HastaMerkezId", 
+(SELECT HC."HastaMerkezId", 
 		SUM(CASE WHEN cast(FP."IslemTarihi" AS date) <=T."OncekiAySonGun" THEN "KdvliHizmetTutari" ELSE 0 end) /GK."DovizAlis" AS "Total_Ciro_Kdvli_USD", 
 		SUM(CASE WHEN cast(FP."IslemTarihi" AS date) <=T."OncekiAySonGun" THEN "KdvsizHizmetTutari" ELSE 0 end) /GK."DovizAlis" AS "Total_Ciro_Kdvsiz_USD", 
 		SUM(CASE WHEN cast(FP."IslemTarihi" AS date) <=T."OncekiAySonGun" THEN "KdvliHizmetTutari" ELSE 0 end) AS "Total_Ciro_Kdvli_TL", 
@@ -939,14 +934,13 @@ SELECT "HastaMerkezId",
 		SUM(CASE WHEN FP."GelisTipiId"='Y' THEN "KdvliHizmetTutari" ELSE 0 end) AS "Total_Ciro_Kdvli_TL_Yatan", 
 		SUM(CASE WHEN FP."GelisTipiId"='Y' THEN "KdvsizHizmetTutari" ELSE 0 end) AS "Total_Ciro_Kdvsiz_TL_Yatan" 
 FROM "FCTProtokol" FP 
-left join "MEMOBI_DWH"."DIMHasta" h on h."HastaId" = FP."HastaId"
-LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo"
+LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId"
 LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T ON 1=1 
 LEFT JOIN "MEMOBI_ODS_MRKZ"."Finans_GunlukKur" GK ON cast(GK."Tarih" AS Date)= cast(FP."IslemTarihi" AS date) AND GK."ParaBirimiId" = 2 
-GROUP BY FP."HastaMerkezId",GK."DovizAlis") T1 GROUP BY "HastaMerkezId"
+GROUP BY HC."HastaMerkezId",GK."DovizAlis") T1 GROUP BY "HastaMerkezId"
 --HastaTedavi
 with cte as(
-SELECT distinct HC."HastaMerkezId", 
+SELECT HC."HastaMerkezId", 
 	   MIN(FP."IslemTarihi") AS "Min_IslemTarihi", 
 	   MAX(FP."IslemTarihi") AS "Max_IslemTarihi", 
 	   MAX(case WHEN OH."Kodu" in('INLMB0443', 'INLMB0544', 'GNTAR0782', 'GRBGH0024', 'GNGEN0552', 'GNTAR0781', 'GNTAR0779', 'GNTAR0769/4', 'INLMB0548', 'INLMB0443/2', 'INLMB0541', 'INLMB0540', 'INLMB0547', 'INLPN1850', 'GNTAR0791', 'INLMB0548/1', 'INLMB0444', 'GNTAR6197', 'INLPN1849', 'GNMCU0259') THEN 1 ELSE 0 END) AS "Pcr_Flag", 
@@ -976,15 +970,14 @@ SELECT distinct HC."HastaMerkezId",
 	   count ( distinct CASE WHEN cast (FP."IslemTarihi" AS date) <= T."OncekiAySonGun" THEN FP."ProtokolId" END ) AS "Frekans", 
 	   cast (now() AS timestamp) AS "ETLDate" 
 FROM "FCTProtokol" FP
-left join "MEMOBI_DWH"."DIMHasta" h on h."HastaId" = FP."HastaId"
-LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo" 
+LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId" 
 LEFT JOIN "MEMOBI_ODS_MRKZ"."Ortak_Hizmet" OH ON OH."Id" = FP."HizmetId" 
 LEFT JOIN "MEMOBI_DWH"."DIMBolum" DBolum ON DBolum."BolumId" = FP."UygulayanBolumId" 
 LEFT JOIN "MEMOBI_DM"."Tedavi_ProtokolICD" TID ON TID."ProtokolId" = FP."ProtokolId" AND TID."SubeId" = FP."SubeId" 
 LEFT JOIN "MEMOBI_DM"."Tedavi_ICD" ICD ON ICD."Id" = TID."ICDId" 
 LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T ON 1 = 1 
 where cast (FP."IslemTarihi" AS date) <= T."OncekiAySonGun" 
-GROUP BY FP."HastaMerkezId" 
+GROUP BY HC."HastaMerkezId"
 )
 select * from cte
 --HastaSubeBolumDoktor
@@ -1383,7 +1376,7 @@ SELECT "HastaMerkezId",
 	   MAX("SonAKKKurumAdi") AS "SonAKKKurumAdi", 
 	   MAX("BaskınKurumTipi") AS "BaskinKurumTipi", 
 	   cast(now() AS timestamp) AS "ETLDate" 
-FROM( SELECT distinct HC."HastaMerkezId",
+FROM( SELECT HC."HastaMerkezId",
 		    MAX(CASE WHEN cast (FP."ProtokolAcilisTarihi" AS date) BETWEEN T."UcAyOnceIlkGun" AND T."OncekiAySonGun" AND KT."KurumTipiId"=2 THEN 1 ELSE 0 END) AS "Kurum_Tip_OSS_03" ,
 			MAX(CASE WHEN cast (FP."ProtokolAcilisTarihi" AS date) BETWEEN T."AltiAyOnceIlkGun" AND T."OncekiAySonGun" AND KT."KurumTipiId"=2 THEN 1 ELSE 0 END) AS "Kurum_Tip_OSS_06" ,
 			MAX(CASE WHEN cast (FP."ProtokolAcilisTarihi" AS date) BETWEEN T."OnIkiAyOnceIlkGun" AND T."OncekiAySonGun" AND KT."KurumTipiId"=2 THEN 1 ELSE 0 END) AS "Kurum_Tip_OSS_012" ,
@@ -1411,12 +1404,11 @@ FROM( SELECT distinct HC."HastaMerkezId",
 			'' AS "SonOSSKurumAdi", 
 			'' AS "SonAKKKurumAdi", 
 			'' AS "BaskınKurumTipi" 
-	  FROM "FCTProtokol" FP
-	  left join "MEMOBI_DWH"."DIMHasta" h on h."HastaId" = FP."HastaId"
-	  LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo"	  
+	  FROM "FCTProtokol" FP	 
+	  LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId"
 	  LEFT JOIN "MEMOBI_DWH"."DIMKurumTipi" KT ON KT."KurumTipiId" = FP."KurumTipiId" 
 	  LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T ON 1=1 
-	  GROUP BY FP."HastaMerkezId" 
+	  GROUP BY HC."HastaMerkezId" 
 	  UNION all 
 	  SELECT y."HastaMerkezId",
 		     0 AS "Kurum_Tip_OSS_03",
@@ -1453,9 +1445,8 @@ FROM( SELECT distinct HC."HastaMerkezId",
 		FROM (SELECT distinct hc."HastaMerkezId", 
 					 "KurumTipiId" AS "KurumTipiId", 
 					 ROW_NUMBER() OVER(PARTITION BY FP."HastaMerkezId" ORDER BY cast(FP."ProtokolAcilisTarihi" AS date) desc) "Sira" 
-			  FROM "FCTProtokol" FP 
-			  left join "MEMOBI_DWH"."DIMHasta" h on h."HastaId" = FP."HastaId"
-			  LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo"	  	  
+			  FROM "FCTProtokol" FP 			  
+			  LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId"  	  
 			  GROUP BY hc."HastaMerkezId",cast(FP."ProtokolAcilisTarihi" AS date),"KurumTipiId" 
 			  ) y WHERE "Sira"= 1 
 		GROUP BY y."HastaMerkezId" 
@@ -1543,8 +1534,7 @@ FROM( SELECT distinct HC."HastaMerkezId",
 					 "KurumTipiId" AS "KurumTipiId", 
 					 ROW_NUMBER() OVER(PARTITION BY FP."HastaMerkezId" ORDER BY SUM("KdvsizHizmetTutari") desc) "Sira" 
 			 FROM "FCTProtokol" FP 
-			 left join "MEMOBI_DWH"."DIMHasta" h on h."HastaId" = FP."HastaId"
-			  LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo"	  	  			  
+			  LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId"
 			 GROUP BY hc."HastaMerkezId",cast(FP."ProtokolAcilisTarihi" AS date),"KurumTipiId" 
 			 ) y 
 			 WHERE "Sira"= 1 GROUP BY y."HastaMerkezId" 
@@ -1605,8 +1595,7 @@ FROM( SELECT distinct HC."HastaMerkezId",
 					 "KurumTipiId" AS "KurumTipiId", 
 					 ROW_NUMBER() OVER(PARTITION BY FP."HastaMerkezId" ORDER BY SUM("KdvsizHizmetTutari") desc) "Sira" 
 			  FROM "FCTProtokol" FP
-			  left join "MEMOBI_DWH"."DIMHasta" h on h."HastaId" = FP."HastaId"
-			  LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo"			  
+			  LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId"
 			  GROUP BY HC."HastaMerkezId",cast(FP."ProtokolAcilisTarihi" AS date),"KurumTipiId" 
 			  ) y WHERE "Sira"= 1 
 		GROUP BY y."HastaMerkezId" 
