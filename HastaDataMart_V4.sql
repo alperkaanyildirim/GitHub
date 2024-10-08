@@ -316,6 +316,44 @@ LEFT JOIN "MEMOBI_DWH"."DIMHastaMisafirHekim" MH ON MH."HastaMerkezId" = HD."Has
 LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T ON 1=1
 
 --HastaDetails
+with cte as 
+(SELECT HC."HastaMerkezId", 
+			 HC."HastaTCKimlikNo", 
+			 dcinsiyet."CinsiyetAdi", 
+			 HC."DogumTarihi", 
+			 CASE WHEN date_part('year',age(h."DogumTarihi")) >100 OR date_part('year',age(HC."DogumTarihi")) is NULL THEN '40' 
+			 	   ELSE DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE) END AS "Yas", 
+			 CASE WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)<6 THEN 'A_0-5' 
+ 				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)<18 THEN 'B_6-17' 
+				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)<30 THEN 'C_18-29'
+				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)<40 THEN 'D_30-39' 
+				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)<60 THEN 'E_40-59' 
+				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)<80 THEN 'F_60-79' 
+			 ELSE 'G_80+' END AS "YasGrubu", 
+			 CASE WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)>77 THEN '1-Gelenekselci' 
+				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE) BETWEEN 59 AND 77 THEN '2-Baby Boomer' 
+				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE) BETWEEN 44 AND 58 THEN '3-X Kuşağı' 
+				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE) BETWEEN 24 AND 43 THEN '4-Y Kuşağı' 
+				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)BETWEEN 0 AND 23 THEN '5-Z Kuşağı' END AS "Kusak", 
+			 CASE WHEN DUlke."UlkeAdi" = 'Tanimsiz' AND h."UyrukId" = 1 THEN 'Türkiye' 
+			      WHEN DUlke."UlkeAdi" = 'Tanimsiz' AND h."UyrukId" <> 1 THEN 'Tanimsiz' 
+			ELSE DUlke."UlkeAdi" END AS "UlkeAdi", 
+			DIL."IlAdi", 
+			DILCE."IlceAdi", 
+			CASE WHEN HC."HastaTipiId" =2 THEN 1 ELSE 0 END AS "VipFlag", 
+			CASE WHEN IKP."TCKimlikNo" is NOT NULL THEN 1 ELSE 0 END AS "AktifPersonelFlag",
+			LPAD(regexp_replace(replace(replace(TRIM(HC."HastaTCKimlikNo"),'-',''),'','98'), '[[:alpha:]]','0','g')::varchar,11,'98') as "TCKN_Yeni"
+		FROM "MEMOBI_DWH"."DIMHasta" h
+		LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo"
+		LEFT JOIN "MEMOBI_DWH"."DIMCinsiyet" DCinsiyet ON DCinsiyet."CinsiyetId" =h."CinsiyetId" 
+		LEFT JOIN "MEMOBI_DWH"."DIMUlke" DUlke ON DUlke."UlkeId" =h."UlkeId" 
+		LEFT JOIN "MEMOBI_DWH"."DIMIl" DIL ON DIL."IlId" =h."IlIdEv" 
+		LEFT JOIN "MEMOBI_DWH"."DIMIlce" DILCE ON DILce."IlceId" =h."IlceIdEv" 
+		LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1 = 1 
+		LEFT JOIN "MEMOBI_ODS_MRKZ"."IK_Personel" IKP ON IKP."TCKimlikNo" = h."HastaTCKimlikNo" AND IKP."State" =1 AND IKP."CikisTarihi" IS null AND IKP."Id">4 
+		WHERE h."IsCurrent" =1 
+			  AND h."HastaTCKimlikNo" is NOT null
+		)
 SELECT distinct "HastaMerkezId",
 	   (SUBSTR("HastaTCKimlikNo", 1, CAST(2 AS INTEGER)) || '*******' || CASE WHEN LENGTH("HastaTCKimlikNo")<2 THEN "HastaTCKimlikNo" ELSE SUBSTR("HastaTCKimlikNo", (LENGTH("HastaTCKimlikNo") - CAST(2 AS INTEGER) + 1)) END) AS "HastaTCKimlikNo",
 	   case when "CinsiyetAdi" is null then 'Cinsiyet Girilmemiş' else "CinsiyetAdi" end as "CinsiyetAdi", 
@@ -361,186 +399,9 @@ SELECT distinct "HastaMerkezId",
 		"VipFlag",
 		"AktifPersonelFlag", 
 		cast(now() AS timestamp) AS "ETLDate" 
-FROM (SELECT HC."HastaMerkezId", 
-			 HC."HastaTCKimlikNo", 
-			 dcinsiyet."CinsiyetAdi", 
-			 HC."DogumTarihi", 
-			 CASE WHEN date_part('year',age(h."DogumTarihi")) >100 OR date_part('year',age(HC."DogumTarihi")) is NULL THEN '40' 
-			 	   ELSE DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE) END AS "Yas", 
-			 CASE WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)<6 THEN 'A_0-5' 
- 				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)<18 THEN 'B_6-17' 
-				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)<30 THEN 'C_18-29'
-				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)<40 THEN 'D_30-39' 
-				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)<60 THEN 'E_40-59' 
-				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)<80 THEN 'F_60-79' 
-			 ELSE 'G_80+' END AS "YasGrubu", 
-			 CASE WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)>77 THEN '1-Gelenekselci' 
-				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE) BETWEEN 59 AND 77 THEN '2-Baby Boomer' 
-				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE) BETWEEN 44 AND 58 THEN '3-X Kuşağı' 
-				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE) BETWEEN 24 AND 43 THEN '4-Y Kuşağı' 
-				  WHEN DATE_PART('YEAR', T."OncekiAySonGun":: DATE) - DATE_PART('YEAR', HC."DogumTarihi" :: DATE)BETWEEN 0 AND 23 THEN '5-Z Kuşağı' END AS "Kusak", 
-			 CASE WHEN DUlke."UlkeAdi" = 'Tanimsiz' AND h."UyrukId" = 1 THEN 'Türkiye' 
-			      WHEN DUlke."UlkeAdi" = 'Tanimsiz' AND h."UyrukId" <> 1 THEN 'Tanimsiz' 
-			ELSE DUlke."UlkeAdi" END AS "UlkeAdi", 
-			DIL."IlAdi", 
-			DILCE."IlceAdi", 
-			CASE WHEN HC."HastaTipiId" =2 THEN 1 ELSE 0 END AS "VipFlag", 
-			CASE WHEN IKP."TCKimlikNo" is NOT NULL THEN 1 ELSE 0 END AS "AktifPersonelFlag",
-			LPAD(regexp_replace(replace(replace(TRIM(HC."HastaTCKimlikNo"),'-',''),'','98'), '[[:alpha:]]','0','g')::varchar,11,'98') as "TCKN_Yeni"
-		FROM "MEMOBI_DWH"."DIMHasta" h
-		LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo"
-		LEFT JOIN "MEMOBI_DWH"."DIMCinsiyet" DCinsiyet ON DCinsiyet."CinsiyetId" =h."CinsiyetId" 
-		LEFT JOIN "MEMOBI_DWH"."DIMUlke" DUlke ON DUlke."UlkeId" =h."UlkeId" 
-		LEFT JOIN "MEMOBI_DWH"."DIMIl" DIL ON DIL."IlId" =h."IlIdEv" 
-		LEFT JOIN "MEMOBI_DWH"."DIMIlce" DILCE ON DILce."IlceId" =h."IlceIdEv" 
-		LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1 = 1 
-		LEFT JOIN "MEMOBI_ODS_MRKZ"."IK_Personel" IKP ON IKP."TCKimlikNo" = h."HastaTCKimlikNo" AND IKP."State" =1 AND IKP."CikisTarihi" IS null AND IKP."Id">4 
-		WHERE h."IsCurrent" =1 
-			  AND h."HastaTCKimlikNo" is NOT null 
-		)y
+FROM cte
 --HastaProtokol
-SELECT x."HastaMerkezId", 
-	   x."ProtokolId", 
-	   cast(x."IslemTarihi" AS date) AS "IslemTarihi", 
-	   cast(x."AcilisTarihi" AS date) AS "AcilisTarihi", 
-	   x."SubeId",
-	   x."BolumId", 
-	   DBolum2."BolumAdi", 
-	   x."UygulayanPersonelId", 
-	   x."FormTip", 
-	   max(x."Lab_Rad_Haric_Flag") AS "Lab_Rad_Haric_Flag", 
-	   max(x."Laboratuvar_Flag") AS "Laboratuvar_Flag", 
-	   max(x."Radyoloji_Flag") AS "Radyoloji_Flag",
-	   x."KaynakSys" as "KaynakSys", 
-	   cast(now() AS timestamp) AS "ETLDate" 
-FROM(SELECT distinct HC."HastaMerkezId", 
-			FP."ProtokolId", 
-			FP."IslemTarihi" AS "IslemTarihi", 
-			FP."ProtokolAcilisTarihi" AS "AcilisTarihi", 
-			FP."SubeId", 
-			coalesce (case WHEN oh."HizmetTipiId" = 2 THEN 762 
-						   WHEN oh."HizmetTipiId" = 3 THEN 625 
-						   WHEN oh."HizmetTipiId" = 21 THEN 621 
-					  ELSE FP."UygulayanBolumId" end,FP."BolumId") AS "BolumId", 
-			FP."UygulayanPersonelId", 
-			CASE WHEN FP."GelisTipiId" = 'Y' THEN 'Yatan' 
-				 WHEN FP."GelisTipiId" = 'A' AND DBolum."BolumAdi" NOT LIKE '%Acil%' THEN 'Ayaktan' 
-				 WHEN FP."GelisTipiId" = 'A' AND DBolum."BolumAdi" LIKE '%Acil%' THEN 'Acil' END AS "FormTip", 
-			CASE WHEN oh."HizmetTipiId" <> 2 AND oh."HizmetTipiId" <> 3 THEN 1 ELSE 0 END AS "Lab_Rad_Haric_Flag", 
-			CASE WHEN oh."HizmetTipiId" = 2 THEN 1 ELSE 0 END AS "Laboratuvar_Flag", 
-			CASE WHEN oh."HizmetTipiId" = 3 THEN 1 ELSE 0 END AS "Radyoloji_Flag", 
-			FP."KaynakSys" 
-	FROM "FCTProtokol" FP 
-	left join "MEMOBI_DWH"."DIMHasta" h on h."HastaId" = FP."HastaId"
-	LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo"
-	LEFT JOIN "MEMOBI_DWH"."DIMBolum" DBolum ON DBolum."BolumId" = FP."UygulayanBolumId" 
-	LEFT JOIN "MEMOBI_ODS_MRKZ"."Ortak_Hizmet" OH ON OH."Id" = FP."HizmetId" 
-	LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T ON 1=1 
-	WHERE cast (fp."IslemTarihi" AS date) <= T."OncekiAySonGun"
-
-	) x 
-LEFT JOIN "MEMOBI_DWH"."DIMBolum" DBolum2 ON DBolum2."BolumId" = x."BolumId" 
-GROUP BY x."HastaMerkezId", x."ProtokolId", cast(x."IslemTarihi" AS date), cast(x."AcilisTarihi" AS date),x."SubeId",x."FormTip",x."BolumId",DBolum2."BolumAdi",x."UygulayanPersonelId", x."KaynakSys"
---HastaProtokol24
-select "HastaMerkezId", 
-	   "ProtokolId", 
-	   "IslemTarihi", 
-	   "AcilisTarihi", 
-	   "SubeId", 
-	   "BolumId", 
-	   "BolumAdi", 
-	   "UygulayanPersonelId", 
-	   "FormTip", 
-	   "Lab_Rad_Haric_Flag", 
-	   "Laboratuvar_Flag", 
-	   "Radyoloji_Flag", 
-	   "KaynakSys", 
-	   "ETLDate" 
-from "MEMOBI_DWH"."DIMHastaProtokol" fp 
-LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T ON 1=1 
-WHERE cast(fp."IslemTarihi" AS date) BETWEEN T."YirmiDortAyOnceIlkGun"and T."OncekiAySonGun"
---HastaMisafirHekim
-select "HastaMerkezId",
-	    MAX("Hizmet_03") as "Hizmet_03",
-		MAX("Hizmet_06") as "Hizmet_06",
-		MAX("Hizmet_012") as "Hizmet_012",
-		MAX("Hizmet_13_24") as "Hizmet_13_24",
-		MAX("Hizmet_024") "Hizmet_024" ,
-		max("MisafirDoktorId") as "MisafirDoktorId",
-		max("MisafirDoktorAdi") as "MisafirDoktorAdi", 
-		CURRENT_DATE as "ETLDate" 
-from(select "HastaMerkezId", 
-		     MAX(case WHEN "Min_Tarih" between T."UcAyOnceIlkGun" and T."UcAyOnceSonGun" then 1 else 0 END) as "Hizmet_03", 
-			 MAX(case WHEN "Min_Tarih" between T."AltiAyOnceIlkGun" and T."AltiAyOnceSonGun" then 1 else 0 END ) as "Hizmet_06", 
-			 MAX(case WHEN "Min_Tarih" between T."OnIkiAyOnceIlkGun" and T."OnIkiAyOnceSonGun" then 1 else 0 END ) as "Hizmet_012", 
-			 MAX(case WHEN "Min_Tarih" between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 END ) as "Hizmet_13_24", 
-			 MAX(case WHEN "Min_Tarih" between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "Hizmet_024", 
-			 0 as "MisafirDoktorId", 
-			 '' as "MisafirDoktorAdi" 
-	FROM( select hp."HastaMerkezId" as "HastaMerkezId", 
-		         MIN(cast(HP."IslemTarihi" as DATE)) as "Min_Tarih" 
-		 from "MEMOBI_DWH"."DIMHastaProtokol" HP 
-		 where HP."BolumAdi" like '%Misafir%' 
-		 group by hp."HastaMerkezId",HP."UygulayanPersonelId" 
-		 )X 
-         LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1=1 
-		 group by "HastaMerkezId" 
-		 union ALL 
-		 select "HastaMerkezId", 
-				 0 as "Hizmet_03", 
-				 0 as "Hizmet_06", 
-				 0 as "Hizmet_012", 
-				 0 as "Hizmet_13_24", 
-				 0 as "Hizmet_0240", 
-				 z."DoktorId" as "MisafirDoktorId", 
-				 IKP."Adi"||' '||IKP."Soyadi" as "MisafirDoktorAdi" 
-		from( select * 
-			  from(select "HastaMerkezId", 
-						   "DoktorId", 
-						   ROW_NUMBER() OVER(PARTITION BY "HastaMerkezId" ORDER BY "Sayi" DESC) "Sira" 
-					from (select HP."HastaMerkezId", 
-								 HP."UygulayanPersonelId" as "DoktorId", 
-								 COUNT(1) as "Sayi" 
-						  from "MEMOBI_DWH"."DIMHastaProtokol" HP 
-						  LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1=1 
-						  where HP."BolumAdi" like '%Misafir%' 
-								AND cast(HP."IslemTarihi" as DATE) BETWEEN T."YirmiDortAyOnceIlkGun" AND T."OncekiAySonGun" 
-						  group by HP."HastaMerkezId",HP."UygulayanPersonelId" 
-						  )x 
-				  )y 
-			where "Sira" = 1 
-			)z 
-			LEFT JOIN "MEMOBI_ODS_MRKZ"."IK_Personel" IKP on IKP."Id" = z."DoktorId" 
-			)mh 
-group by mh."HastaMerkezId" 
---HastaFlag
-select HC."HastaMerkezId", 
-	   max(CASE WHEN FP."SubeId"=7 THEN 1 ELSE 0 end) AS "Sisli_Flag", 
-	   max(CASE WHEN FP."SubeId"=23 THEN 1 ELSE 0 end) AS "Atasehir_Flag", 
-	   max(CASE WHEN FP."SubeId"=24 THEN 1 ELSE 0 end) AS "Antalya_Flag", 
-	   max( CASE WHEN FP."SubeId"=31 THEN 1 ELSE 0 end) AS "Hizmet_Flag", 
-	   max(CASE WHEN FP."SubeId"=37 THEN 1 ELSE 0 end) AS "Diyarbakir_Flag", 
-	   max(CASE WHEN FP."SubeId"=79 THEN 1 ELSE 0 end) AS "MedStarAntalya_Flag", 
-	   max(CASE WHEN FP."SubeId"=80 THEN 1 ELSE 0 end) AS "Topcular_Flag", 
-	   max(CASE WHEN FP."SubeId"=95 THEN 1 ELSE 0 end) AS "Kayseri_Flag",
-	   max(CASE WHEN FP."SubeId"=105 THEN 1 ELSE 0 end) AS "Ankara_Flag", 
-	   max(CASE WHEN FP."SubeId"=116 THEN 1 ELSE 0 END) AS "Dicle_Flag", 
-	   max(CASE WHEN FP."SubeId"=158 THEN 1 ELSE 0 end) AS "Bahcelievler_Flag", 
-	   max(case when FP."GelisTipiId" = 'A' then 1 else 0 end) as "Ayaktan_Flag", 
-	   max(case when FP."GelisTipiId" = 'Y' then 1 else 0 end) as "Yatan_Flag", 
-	   max(case when DBolum."BolumAdi" LIKE '%Acil%' then 1 else 0 end) as "Acil_Flag", 
-	   max(case when DBolum."BolumAdi" LIKE '%Lab%' then 1 else 0 end) as "Lab_Flag", 
-	   max(case when DBolum."BolumAdi" LIKE '%Radyoloji%' then 1 else 0 end) as "Rad_Flag", 
-	   min(case when FP."SubeId" in(7,23,88,103,105,136,147,158,44,52,62,155,159,176,228,2,36) then 1 when FP."SubeId" in (24,31,95) then 2 when FP."SubeId" in (37,79,80,116) then 23 end) as "SubeSegment", 
-	   cast (now() AS timestamp) AS "ETLDate" 
-from "FCTProtokol" FP 
-left join "MEMOBI_DWH"."DIMHasta" h on h."HastaId" = FP."HastaId"
-LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo"
-left join "MEMOBI_DWH"."DIMBolum" DBolum ON DBolum."BolumId" = FP."UygulayanBolumId"
---LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1 = 1  
---where cast (fp."IslemTarihi" as date) <= T."OncekiAySonGun" 
-group by FP."HastaMerkezId"
---HastaFlag24
+with cte as(
 SELECT distinct hc."HastaMerkezId", 
 	   MAX(FP."IslemTarihi") AS "Max_ProtokolIslemTarih_024", 
 	   MIN(FP."IslemTarihi") AS "Min_ProtokolIslemTarih_024", 
@@ -704,11 +565,284 @@ SELECT distinct hc."HastaMerkezId",
 	   cast (now() AS timestamp) AS "ETLDate" 
 FROM "DIMHastaProtokol" FP 
 left JOIN "MEMOBI_DWH"."DIMBolum" DBolum ON DBolum."BolumId" = FP."BolumId"
-left join "MEMOBI_DWH"."DIMHasta" h on h."HastaId" = FP."HastaId"
+left join "MEMOBI_DWH"."DIMHasta" h on h."HastaId" = FP."HastaMerkezId"
 LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo" 
 LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1 = 1 
 where cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" 
-GROUP BY FP."HastaMerkezId" 
+GROUP BY  hc."HastaMerkezId"
+)
+select * from cte
+--HastaProtokol24
+select "HastaMerkezId", 
+	   "ProtokolId", 
+	   "IslemTarihi", 
+	   "AcilisTarihi", 
+	   "SubeId", 
+	   "BolumId", 
+	   "BolumAdi", 
+	   "UygulayanPersonelId", 
+	   "FormTip", 
+	   "Lab_Rad_Haric_Flag", 
+	   "Laboratuvar_Flag", 
+	   "Radyoloji_Flag", 
+	   "KaynakSys", 
+	   "ETLDate" 
+from "MEMOBI_DWH"."DIMHastaProtokol" fp 
+LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T ON 1=1 
+WHERE cast(fp."IslemTarihi" AS date) BETWEEN T."YirmiDortAyOnceIlkGun"and T."OncekiAySonGun"
+--HastaMisafirHekim
+select "HastaMerkezId",
+	    MAX("Hizmet_03") as "Hizmet_03",
+		MAX("Hizmet_06") as "Hizmet_06",
+		MAX("Hizmet_012") as "Hizmet_012",
+		MAX("Hizmet_13_24") as "Hizmet_13_24",
+		MAX("Hizmet_024") "Hizmet_024" ,
+		max("MisafirDoktorId") as "MisafirDoktorId",
+		max("MisafirDoktorAdi") as "MisafirDoktorAdi", 
+		CURRENT_DATE as "ETLDate" 
+from(select "HastaMerkezId", 
+		     MAX(case WHEN "Min_Tarih" between T."UcAyOnceIlkGun" and T."UcAyOnceSonGun" then 1 else 0 END) as "Hizmet_03", 
+			 MAX(case WHEN "Min_Tarih" between T."AltiAyOnceIlkGun" and T."AltiAyOnceSonGun" then 1 else 0 END ) as "Hizmet_06", 
+			 MAX(case WHEN "Min_Tarih" between T."OnIkiAyOnceIlkGun" and T."OnIkiAyOnceSonGun" then 1 else 0 END ) as "Hizmet_012", 
+			 MAX(case WHEN "Min_Tarih" between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 END ) as "Hizmet_13_24", 
+			 MAX(case WHEN "Min_Tarih" between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "Hizmet_024", 
+			 0 as "MisafirDoktorId", 
+			 '' as "MisafirDoktorAdi" 
+	FROM( select hp."HastaMerkezId" as "HastaMerkezId", 
+		         MIN(cast(HP."IslemTarihi" as DATE)) as "Min_Tarih" 
+		 from "MEMOBI_DWH"."DIMHastaProtokol" HP 
+		 where HP."BolumAdi" like '%Misafir%' 
+		 group by hp."HastaMerkezId",HP."UygulayanPersonelId" 
+		 )X 
+         LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1=1 
+		 group by "HastaMerkezId" 
+		 union ALL 
+		 select "HastaMerkezId", 
+				 0 as "Hizmet_03", 
+				 0 as "Hizmet_06", 
+				 0 as "Hizmet_012", 
+				 0 as "Hizmet_13_24", 
+				 0 as "Hizmet_0240", 
+				 z."DoktorId" as "MisafirDoktorId", 
+				 IKP."Adi"||' '||IKP."Soyadi" as "MisafirDoktorAdi" 
+		from( select * 
+			  from(select "HastaMerkezId", 
+						   "DoktorId", 
+						   ROW_NUMBER() OVER(PARTITION BY "HastaMerkezId" ORDER BY "Sayi" DESC) "Sira" 
+					from (select HP."HastaMerkezId", 
+								 HP."UygulayanPersonelId" as "DoktorId", 
+								 COUNT(1) as "Sayi" 
+						  from "MEMOBI_DWH"."DIMHastaProtokol" HP 
+						  LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1=1 
+						  where HP."BolumAdi" like '%Misafir%' 
+								AND cast(HP."IslemTarihi" as DATE) BETWEEN T."YirmiDortAyOnceIlkGun" AND T."OncekiAySonGun" 
+						  group by HP."HastaMerkezId",HP."UygulayanPersonelId" 
+						  )x 
+				  )y 
+			where "Sira" = 1 
+			)z 
+			LEFT JOIN "MEMOBI_ODS_MRKZ"."IK_Personel" IKP on IKP."Id" = z."DoktorId" 
+			)mh 
+group by mh."HastaMerkezId" 
+--HastaFlag
+select HC."HastaMerkezId", 
+	   max(CASE WHEN FP."SubeId"=7 THEN 1 ELSE 0 end) AS "Sisli_Flag", 
+	   max(CASE WHEN FP."SubeId"=23 THEN 1 ELSE 0 end) AS "Atasehir_Flag", 
+	   max(CASE WHEN FP."SubeId"=24 THEN 1 ELSE 0 end) AS "Antalya_Flag", 
+	   max( CASE WHEN FP."SubeId"=31 THEN 1 ELSE 0 end) AS "Hizmet_Flag", 
+	   max(CASE WHEN FP."SubeId"=37 THEN 1 ELSE 0 end) AS "Diyarbakir_Flag", 
+	   max(CASE WHEN FP."SubeId"=79 THEN 1 ELSE 0 end) AS "MedStarAntalya_Flag", 
+	   max(CASE WHEN FP."SubeId"=80 THEN 1 ELSE 0 end) AS "Topcular_Flag", 
+	   max(CASE WHEN FP."SubeId"=95 THEN 1 ELSE 0 end) AS "Kayseri_Flag",
+	   max(CASE WHEN FP."SubeId"=105 THEN 1 ELSE 0 end) AS "Ankara_Flag", 
+	   max(CASE WHEN FP."SubeId"=116 THEN 1 ELSE 0 END) AS "Dicle_Flag", 
+	   max(CASE WHEN FP."SubeId"=158 THEN 1 ELSE 0 end) AS "Bahcelievler_Flag", 
+	   max(case when FP."GelisTipiId" = 'A' then 1 else 0 end) as "Ayaktan_Flag", 
+	   max(case when FP."GelisTipiId" = 'Y' then 1 else 0 end) as "Yatan_Flag", 
+	   max(case when DBolum."BolumAdi" LIKE '%Acil%' then 1 else 0 end) as "Acil_Flag", 
+	   max(case when DBolum."BolumAdi" LIKE '%Lab%' then 1 else 0 end) as "Lab_Flag", 
+	   max(case when DBolum."BolumAdi" LIKE '%Radyoloji%' then 1 else 0 end) as "Rad_Flag", 
+	   min(case when FP."SubeId" in(7,23,88,103,105,136,147,158,44,52,62,155,159,176,228,2,36) then 1 when FP."SubeId" in (24,31,95) then 2 when FP."SubeId" in (37,79,80,116) then 23 end) as "SubeSegment", 
+	   cast (now() AS timestamp) AS "ETLDate" 
+from "FCTProtokol" FP 
+left join "MEMOBI_DWH"."DIMHasta" h on h."HastaId" = FP."HastaId"
+LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo"
+left join "MEMOBI_DWH"."DIMBolum" DBolum ON DBolum."BolumId" = FP."UygulayanBolumId"
+--LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1 = 1  
+--where cast (fp."IslemTarihi" as date) <= T."OncekiAySonGun" 
+group by FP."HastaMerkezId"
+--HastaFlag24
+with cte as(
+SELECT distinct hc."HastaMerkezId", 
+	   MAX(FP."IslemTarihi") AS "Max_ProtokolIslemTarih_024", 
+	   MIN(FP."IslemTarihi") AS "Min_ProtokolIslemTarih_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Lab%' and cast(fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end) as "Lab_Flag_03", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Lab%' and cast(fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Lab_Flag_06", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Lab%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Lab_Flag_012", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Lab%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Lab_Flag_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Radyoloji%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Rad_Flag_03", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Radyoloji%' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Rad_Flag_06", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Radyoloji%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Rad_Flag_012", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Radyoloji%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Rad_Flag_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Acil%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Acil_Flag_03", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Acil%' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Acil_Flag_06", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Acil%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Acil_Flag_012", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Acil%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Acil_Flag_024", 
+	   MAX( case WHEN FP."FormTip" = 'Ayaktan' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Ayaktan_Flag_03", 
+	   MAX( case WHEN FP."FormTip" = 'Ayaktan' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Ayaktan_Flag_06", 
+	   MAX( case WHEN FP."FormTip" = 'Ayaktan' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Ayaktan_Flag_012", 
+	   MAX( case WHEN FP."FormTip" = 'Ayaktan' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Ayaktan_Flag_024", 
+	   MAX( case WHEN FP."FormTip" = 'Yatan' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Yatan_Flag_03", 
+	   MAX( case WHEN FP."FormTip" = 'Yatan' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Yatan_Flag_06", 
+	   MAX( case WHEN FP."FormTip" = 'Yatan' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Yatan_Flag_012", 
+	   MAX( case WHEN FP."FormTip" = 'Yatan' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Yatan_Flag_024", 
+	   MAX( case WHEN FP."SubeId" = 7 and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "Sisli_Flag_03", 
+	   MAX( case WHEN FP."SubeId" = 7 and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Sisli_Flag_06", 
+	   MAX( case WHEN FP."SubeId" = 7 and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Sisli_Flag_012",
+	   MAX( case WHEN FP."SubeId" = 7 and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Sisli_Flag_024", 
+	   MAX( case WHEN FP."SubeId" = 23 and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "Atasehir_Flag_03", 
+	   MAX( case WHEN FP."SubeId" = 23 and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Atasehir_Flag_06", 
+	   MAX( case WHEN FP."SubeId" = 23 and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Atasehir_Flag_012", 
+	   MAX( case WHEN FP."SubeId" = 23 and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Atasehir_Flag_024", 
+	   MAX( case WHEN FP."SubeId" = 24 and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "Antalya_Flag_03", 
+	   MAX( case WHEN FP."SubeId" = 24 and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Antalya_Flag_06", 
+	   MAX( case WHEN FP."SubeId" = 24 and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Antalya_Flag_012", 
+	   MAX( case WHEN FP."SubeId" = 24 and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Antalya_Flag_024", 
+	   MAX( case WHEN FP."SubeId" = 31 and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "Hizmet_Flag_03", 
+	   MAX( case WHEN FP."SubeId" = 31 and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Flag_06", 
+	   MAX( case WHEN FP."SubeId" = 31 and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Flag_012", 
+	   MAX( case WHEN FP."SubeId" = 31 and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Flag_024", 
+	   MAX( case WHEN FP."SubeId" = 37 and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "Diyarbakir_Flag_03", 
+	   MAX( case WHEN FP."SubeId" = 37 and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Diyarbakir_Flag_06", 
+	   MAX( case WHEN FP."SubeId" = 37 and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Diyarbakir_Flag_012", 
+	   MAX( case WHEN FP."SubeId" = 37 and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Diyarbakir_Flag_024", 
+	   MAX( case WHEN FP."SubeId" = 79 and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "MedStarAntalya_Flag_03", 
+	   MAX( case WHEN FP."SubeId" = 79 and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "MedStarAntalya_Flag_06", 
+	   MAX( case WHEN FP."SubeId" = 79 and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "MedStarAntalya_Flag_012", 
+	   MAX( case WHEN FP."SubeId" = 79 and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "MedStarAntalya_Flag_024", 
+	   MAX( case WHEN FP."SubeId" = 80 and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "Topcular_Flag_03", 
+	   MAX( case WHEN FP."SubeId" = 80 and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Topcular_Flag_06", 
+	   MAX( case WHEN FP."SubeId" = 80 and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Topcular_Flag_012", 
+	   MAX( case WHEN FP."SubeId" = 80 and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Topcular_Flag_024", 
+	   MAX( case WHEN FP."SubeId" = 95 and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "Kayseri_Flag_03", 
+	   MAX( case WHEN FP."SubeId" = 95 and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Kayseri_Flag_06", 
+	   MAX( case WHEN FP."SubeId" = 95 and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Kayseri_Flag_012", 
+	   MAX( case WHEN FP."SubeId" = 95 and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Kayseri_Flag_024", 
+	   MAX( case WHEN FP."SubeId" = 105 and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "Ankara_Flag_03", 
+	   MAX( case WHEN FP."SubeId" = 105 and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Ankara_Flag_06", 
+	   MAX( case WHEN FP."SubeId" = 105 and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Ankara_Flag_012", 
+	   MAX( case WHEN FP."SubeId" = 105 and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Ankara_Flag_024", 
+	   MAX( case WHEN FP."SubeId" = 116 and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "Dicle_Flag_03", 
+	   MAX( case WHEN FP."SubeId" = 116 and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Dicle_Flag_06", 
+	   MAX( case WHEN FP."SubeId" = 116 and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Dicle_Flag_012", 
+	   MAX( case WHEN FP."SubeId" = 116 and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Dicle_Flag_024", 
+	   MAX( case WHEN FP."SubeId" = 158 and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "Bahcelievler_Flag_03", 
+	   MAX( case WHEN FP."SubeId" = 158 and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Bahcelievler_Flag_06", 
+	   MAX( case WHEN FP."SubeId" = 158 and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Bahcelievler_Flag_012", 
+	   MAX( case WHEN FP."SubeId" = 158 and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Bahcelievler_Flag_024", 
+	   COUNT( DISTINCT case WHEN cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" THEN FP."ProtokolId" END ) AS "Adet_03", 
+	   COUNT( DISTINCT case WHEN cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" THEN FP."ProtokolId" END ) AS "Adet_06", 
+	   COUNT( DISTINCT case WHEN cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" THEN FP."ProtokolId" END ) AS "Adet_012", 
+	   COUNT( DISTINCT case WHEN cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" THEN FP."ProtokolId" END ) AS "Adet_024", 
+	   COUNT( DISTINCT DATE_PART('YEAR', FP."IslemTarihi" :: date) || '_' || DATE_PART('MONTH', FP."IslemTarihi" :: date) ) AS "Adet_Ay", 
+	   COUNT( DISTINCT case WHEN cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" THEN DATE_PART('YEAR', FP."IslemTarihi" :: date) || '_' || DATE_PART('MONTH', FP."IslemTarihi" :: date) END ) AS "Adet_Ay_03", 
+	   COUNT( DISTINCT case WHEN cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" THEN DATE_PART('YEAR', FP."IslemTarihi" :: date) || '_' || DATE_PART('MONTH', FP."IslemTarihi" :: date) END ) AS "Adet_Ay_06", 
+	   COUNT( DISTINCT case WHEN cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" THEN DATE_PART('YEAR', FP."IslemTarihi" :: date) || '_' || DATE_PART('MONTH', FP."IslemTarihi" :: date) END ) AS "Adet_Ay_012", 
+	   COUNT( DISTINCT case WHEN cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" THEN DATE_PART('YEAR', FP."IslemTarihi" :: date) || '_' || DATE_PART('MONTH', FP."IslemTarihi" :: date) END ) AS "Adet_Ay_024", 
+	   MAX( case WHEN cast (fp."IslemTarihi" as date) between T."OncekiAyIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "Hizmet_01", 
+	   MAX( case WHEN cast (fp."IslemTarihi" as date) between T."IkiAyOnceIlkGun" and T."IkiAyOnceSonGun" then 1 else 0 END ) as "Hizmet_02", 
+	   MAX( case WHEN cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."UcAyOnceSonGun" then 1 else 0 END ) as "Hizmet_03", 
+	   MAX( case WHEN cast (fp."IslemTarihi" as date) between T."DortAyOnceIlkGun" and T."DortAyOnceSonGun" then 1 else 0 END ) as "Hizmet_04", 
+	   MAX( case WHEN cast (fp."IslemTarihi" as date) between T."BesAyOnceIlkGun" and T."BesAyOnceSonGun" then 1 else 0 END ) as "Hizmet_05", 
+	   MAX( case WHEN cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."AltiAyOnceSonGun" then 1 else 0 END ) as "Hizmet_06", 
+	   MAX( case WHEN cast (fp."IslemTarihi" as date) between T."YediAyOnceIlkGun" and T."YediAyOnceSonGun" then 1 else 0 END ) as "Hizmet_07", 
+	   MAX( case WHEN cast (fp."IslemTarihi" as date) between T."SekizAyOnceIlkGun" and T."SekizAyOnceSonGun" then 1 else 0 END ) as "Hizmet_08", 
+	   MAX( case WHEN cast (fp."IslemTarihi" as date) between T."DokuzAyOnceIlkGun" and T."DokuzAyOnceSonGun" then 1 else 0 END ) as "Hizmet_09", 
+	   MAX( case WHEN cast (fp."IslemTarihi" as date) between T."OnAyOnceIlkGun" and T."OnAyOnceSonGun" then 1 else 0 END ) as "Hizmet_010", 
+	   MAX( case WHEN cast (fp."IslemTarihi" as date) between T."OnBirAyOnceIlkGun" and T."OnBirAyOnceSonGun" then 1 else 0 END ) as "Hizmet_011", 
+	   MAX( case WHEN cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OnIkiAyOnceSonGun" then 1 else 0 END ) as "Hizmet_012", 
+	   MAX( case WHEN cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "Hizmet_12", 
+	   MAX( case WHEN cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 END ) as "Hizmet_13_24", 
+	   MAX( case WHEN cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 END ) as "Hizmet_24", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Dahiliye%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Dahiliye_03", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Dahiliye%' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Dahiliye_06", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Dahiliye%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Dahiliye_012", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Dahiliye%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 end ) as "Hizmet_Dahiliye_013_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Dahiliye%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Dahiliye_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Dermatolo%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Dermatoloji_03", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Dermatolo%' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Dermatoloji_06", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Dermatolo%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Dermatoloji_012", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Dermatolo%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 end ) as "Hizmet_Dermatoloji_013_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Dermatolo%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Dermatoloji_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Endokrinoloji%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Endokrinoloji_03", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Endokrinoloji%' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Endokrinoloji_06", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Endokrinoloji%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Endokrinoloji_012", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Endokrinoloji%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 end ) as "Hizmet_Endokrinoloji_013_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Endokrinoloji%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Endokrinoloji_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Gastro%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Gastroentoroloji_03", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Gastro%' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Gastroentoroloji_06", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Gastro%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Gastroentoroloji_012",
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Gastro%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 end ) as "Hizmet_Gastroentoroloji_013_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Gastro%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Gastroentoroloji_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Genel C%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_GenelCerrahi_03", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Genel C%' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_GenelCerrahi_06",
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Genel C%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_GenelCerrahi_012", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Genel C%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 end ) as "Hizmet_GenelCerrahi_013_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Genel C%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_GenelCerrahi_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Göğüs H%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_GogusHastaliklari_03", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Göğüs H%' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_GogusHastaliklari_06", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Göğüs H%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_GogusHastaliklari_012", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Göğüs H%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 end ) as "Hizmet_GogusHastaliklari_013_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Göğüs H%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_GogusHastaliklari_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Göz%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Goz_03", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Göz%' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Goz_06", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Göz%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Goz_012", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Göz%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 end ) as "Hizmet_Goz_013_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Göz%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Goz_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Kardiyoloji%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Kardiyoloji_03", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Kardiyoloji%' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Kardiyoloji_06", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Kardiyoloji%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Kardiyoloji_012", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Kardiyoloji%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 end ) as "Hizmet_Kardiyoloji_013_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Kardiyoloji%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Kardiyoloji_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%KBB%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_KBB_03",
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%KBB%' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_KBB_06", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%KBB%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_KBB_012", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%KBB%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 end ) as "Hizmet_KBB_013_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%KBB%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_KBB_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Nöroloji%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Noroloji_03",
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Nöroloji%' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Noroloji_06", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Nöroloji%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Noroloji_012", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Nöroloji%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 end ) as "Hizmet_Noroloji_013_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Nöroloji%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Noroloji_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Nöroşirür%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Norosijurji_03", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Nöroşirür%' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Norosijurji_06",
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Nöroşirür%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Norosijurji_012", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Nöroşirür%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 end ) as "Hizmet_Norosijurji_013_024",
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Nöroşirür%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Norosijurji_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Ortopedi%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Ortopedi_03", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Ortopedi%' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Ortopedi_06", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Ortopedi%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Ortopedi_012", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Ortopedi%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 end ) as "Hizmet_Ortopedi_013_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Ortopedi%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Ortopedi_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Üroloji%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Uroloji_03", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Üroloji%' and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Uroloji_06", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Üroloji%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Uroloji_012", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Üroloji%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 end ) as "Hizmet_Uroloji_013_024", 
+	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Üroloji%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Uroloji_024", 
+	   COUNT(distinct DBolum."BolumId") as "Farkli_BolumAdet", COUNT( distinct case WHEN cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then DBolum."BolumId" end ) as "Farkli_BolumAdet_03", 
+	   COUNT( distinct case WHEN cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then DBolum."BolumId" end ) as "Farkli_BolumAdet_06", 
+	   COUNT( distinct case WHEN cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then DBolum."BolumId" end ) as "Farkli_BolumAdet_012", 
+	   COUNT( distinct case WHEN cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then DBolum."BolumId" end ) as "Farkli_BolumAdet_24", 
+	   cast (now() AS timestamp) AS "ETLDate" 
+FROM "DIMHastaProtokol" FP 
+left JOIN "MEMOBI_DWH"."DIMBolum" DBolum ON DBolum."BolumId" = FP."BolumId"
+left join "MEMOBI_DWH"."DIMHasta" h on h."HastaId" = FP."HastaMerkezId"
+LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaTCKimlikNo" = h."HastaTCKimlikNo" 
+LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1 = 1 
+where cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" 
+GROUP BY FP."HastaMerkezId"
+) 
+select * from cte
 --HastaCiro
 SELECT "HastaMerkezId", 
 	   SUM("Total_Ciro_Kdvli_USD") AS "Total_Ciro_Kdvli_Usd", 
@@ -811,6 +945,7 @@ LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T ON 1=1
 LEFT JOIN "MEMOBI_ODS_MRKZ"."Finans_GunlukKur" GK ON cast(GK."Tarih" AS Date)= cast(FP."IslemTarihi" AS date) AND GK."ParaBirimiId" = 2 
 GROUP BY FP."HastaMerkezId",GK."DovizAlis") T1 GROUP BY "HastaMerkezId"
 --HastaTedavi
+with cte as(
 SELECT distinct HC."HastaMerkezId", 
 	   MIN(FP."IslemTarihi") AS "Min_IslemTarihi", 
 	   MAX(FP."IslemTarihi") AS "Max_IslemTarihi", 
@@ -850,6 +985,8 @@ LEFT JOIN "MEMOBI_DM"."Tedavi_ICD" ICD ON ICD."Id" = TID."ICDId"
 LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T ON 1 = 1 
 where cast (FP."IslemTarihi" AS date) <= T."OncekiAySonGun" 
 GROUP BY FP."HastaMerkezId" 
+)
+select * from cte
 --HastaSubeBolumDoktor
 SELECT "HastaMerkezId", 
 		max("SubeUstId24") AS "SubeUstId2Yil", 

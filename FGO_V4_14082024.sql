@@ -49,7 +49,7 @@ union ALL
 
 
 select "a11"."SubeId",
-       "a20"."SubeAdi",
+        "a20"."SubeAdi",
 		--7001,13650 --ÜCRETLİ, 18782 --SGK ÜCRETLİ,18741 --SGK MO2,19226--SGK MO2 O.U 7121 --MO-2 13657 --MO2 OU	    
 		case when coalesce("a14"."KurumId",0) in (0,7001,13650,18782) then 'Cari' else 'MO-2' end as "Gruplama",
 		to_date("a11"."FaturaRaporTarihiId"::text, 'YYYYMMDD') as "Tarih",
