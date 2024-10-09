@@ -1,46 +1,89 @@
+--Ameliyatlar Hesaplanıyor
+select distinct ff."SubeId",ff."ProtokolId" 
+into "MEMOBI_DM"."ProtokolAmeliyat"
+from "MEMOBI_ODS_HBYS"."Finans_Fatura" ff 	
+inner join "MEMOBI_ODS_HBYS"."Finans_FaturaKalem" ffk  on ffk."FaturaId" = ff."Id" and ff."SubeId" = ffk."SubeId" 
+inner join "MEMOBI_ODS_HBYS"."Hasta_ProtokolIslemTutar" hpit on hpit."Id" = ffk."ProtokolIslemTutarId"  and hpit."SubeId" = ffk."SubeId" 
+inner join "MEMOBI_ODS_HBYS"."Hasta_ProtokolIslem" hpi on hpi."Id" = hpit."ProtokolIslemId"  and hpi."SubeId" = hpit."SubeId"
+inner join "MEMOBI_ODS_HBYS"."Hasta_Protokol" hp on hp."Id" = hpi."ProtokolId"  and hp."SubeId" = hpi."SubeId" 
+where ff."FaturaTipiId"  in (8,9) and ff."MatbuFaturaNo"  is not null
+	 and ff."MatbuFaturaNo" not in ('E-Fatura','E-Arşiv')
+	 and hpi."HizmetId" in  (Select "Id" from "MEMOBI_ODS_MRKZ"."Ortak_Hizmet"  oh where oh."HizmetTipiId"=6 )
+	 and ff."CariId" <> 14944
+	 and ff."Tarih" >= '2022-01-01'
+	 
+--Checkuplar Hesaplanıyor
+select distinct ff."SubeId",ff."ProtokolId" 
+into "MEMOBI_DM"."ProtokolCheckup"
+from "MEMOBI_ODS_HBYS"."Finans_Fatura" ff 	
+inner join "MEMOBI_ODS_HBYS"."Finans_FaturaKalem" ffk  on ffk."FaturaId" = ff."Id" and ff."SubeId" = ffk."SubeId" 
+inner join "MEMOBI_ODS_HBYS"."Hasta_ProtokolIslemTutar" hpit on hpit."Id" = ffk."ProtokolIslemTutarId"  and hpit."SubeId" = ffk."SubeId" 
+inner join "MEMOBI_ODS_HBYS"."Hasta_ProtokolIslem" hpi on hpi."Id" = hpit."ProtokolIslemId"  and hpi."SubeId" = hpit."SubeId"
+inner join "MEMOBI_ODS_HBYS"."Hasta_Protokol" hp on hp."Id" = hpi."ProtokolId"  and hp."SubeId" = hpi."SubeId" 
+where ff."FaturaTipiId"  in (8,9) and ff."MatbuFaturaNo"  is not null
+	 and ff."MatbuFaturaNo" not in ('E-Fatura','E-Arşiv')
+	 and hpi."HizmetId" in  (Select "Id" from "MEMOBI_ODS_MRKZ"."Ortak_Hizmet"  oh where oh."HizmetTipiId"=21 )
+	 and ff."CariId" <> 14944
+	 and ff."Tarih" >= '2022-01-01'	 
+
+
+--Ameliyat ve Checkuplar Hesaplanıyor
+select distinct ff."SubeId",ff."ProtokolId" 
+into "MEMOBI_DM"."ProtokolAmeliyatCheckup"
+from "MEMOBI_ODS_HBYS"."Finans_Fatura" ff 	
+inner join "MEMOBI_ODS_HBYS"."Finans_FaturaKalem" ffk  on ffk."FaturaId" = ff."Id" and ff."SubeId" = ffk."SubeId" 
+inner join "MEMOBI_ODS_HBYS"."Hasta_ProtokolIslemTutar" hpit on hpit."Id" = ffk."ProtokolIslemTutarId"  and hpit."SubeId" = ffk."SubeId" 
+inner join "MEMOBI_ODS_HBYS"."Hasta_ProtokolIslem" hpi on hpi."Id" = hpit."ProtokolIslemId"  and hpi."SubeId" = hpit."SubeId"
+inner join "MEMOBI_ODS_HBYS"."Hasta_Protokol" hp on hp."Id" = hpi."ProtokolId"  and hp."SubeId" = hpi."SubeId" 
+where ff."FaturaTipiId"  in (8,9) and ff."MatbuFaturaNo"  is not null
+	 and ff."MatbuFaturaNo" not in ('E-Fatura','E-Arşiv')
+	 and hpi."HizmetId" in  (Select "Id" from "MEMOBI_ODS_MRKZ"."Ortak_Hizmet"  oh where oh."HizmetTipiId" in (6,21) )
+	 and ff."CariId" <> 14944
+	 and ff."Tarih" >= '2022-01-01'	 
+	 
 --Business EQ
-select 'AMELİYAT' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih","DoktorTip","HastaTip","KurumTip","FaturaKdvsizTutar","Adet",cast (now() AS timestamp) AS "ETLDate" 
+select 'AMELİYAT' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih","DoktorTip","HastaTip","KurumTip", "FaturaKdvsizTutar","Adet",cast (now() AS timestamp) AS "ETLDate" 
 from "DM_AmeliyatMSG" 
 union all 
-select 'AMELİYAT DİĞER' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip","FaturaKdvsizTutar","Adet",cast (now() AS timestamp) AS "ETLDate" 
+select 'AMELİYAT DİĞER' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip", "FaturaKdvsizTutar","Adet",cast (now() AS timestamp) AS "ETLDate" 
 from "DM_AmeliyatDigerMSG" 
 union all 
-select 'ANESTEZİ' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip","FaturaKdvsizTutar","Adet",cast (now() AS timestamp) AS "ETLDate"  
+select 'ANESTEZİ' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip", "FaturaKdvsizTutar","Adet",cast (now() AS timestamp) AS "ETLDate"  
 from "MEMOBI_DM"."DM_AnesteziMSG" 
 union all 
-select 'BRANŞ SPESİFİK' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip","FaturaKdvsizTutar","Adet",cast (now() AS timestamp) AS "ETLDate"  
+select 'BRANŞ SPESİFİK' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip" ,"FaturaKdvsizTutar","Adet",cast (now() AS timestamp) AS "ETLDate"  
 from "MEMOBI_DM"."DM_BransSpesifikMSG" 
 union all 
-select 'CHECK UP' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip","FaturaKdvsizTutar","Adet",cast (now() AS timestamp) AS "ETLDate"  
+select 'CHECK UP' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip" ,"FaturaKdvsizTutar","Adet",cast (now() AS timestamp) AS "ETLDate"  
 from "MEMOBI_DM"."DM_CheckupMSG" 
 union all 
-select 'DİĞER' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip","FaturaKdvsizTutar","Adet" ,cast (now() AS timestamp) AS "ETLDate" 
+select 'DİĞER' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip", "FaturaKdvsizTutar","Adet" ,cast (now() AS timestamp) AS "ETLDate" 
 from "MEMOBI_DM"."DM_DigerMSG" 
 union all 
-select 'GENEL' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip","FaturaKdvsizTutar","Adet",cast (now() AS timestamp) AS "ETLDate"   
+select 'GENEL' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip", "FaturaKdvsizTutar","Adet",cast (now() AS timestamp) AS "ETLDate"   
 from "MEMOBI_DM"."DM_GenelMSG" 
 union all 
-select 'ILAC MALZEME KAN' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip","FaturaKdvsizTutar","Adet",cast (now() AS timestamp) AS "ETLDate"   
+select 'ILAC MALZEME KAN' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip" ,"FaturaKdvsizTutar","Adet",cast (now() AS timestamp) AS "ETLDate"   
 from "MEMOBI_DM"."DM_IlacMalzemeKanMSG" 
 union all 
-select 'LABORATUVAR' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip","FaturaKdvsizTutar","Adet" ,cast (now() AS timestamp) AS "ETLDate"  
+select 'LABORATUVAR' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip", "FaturaKdvsizTutar","Adet" ,cast (now() AS timestamp) AS "ETLDate"  
 from "MEMOBI_DM"."DM_LaboratuvarMSG" 
 union all 
-select 'MUAYENE' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip","FaturaKdvsizTutar","Adet" ,cast (now() AS timestamp) AS "ETLDate"  
+select 'MUAYENE' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip" ,"FaturaKdvsizTutar","Adet" ,cast (now() AS timestamp) AS "ETLDate"  
 from "MEMOBI_DM"."DM_MuayeneMSG" 
 union all 
-select 'ODA YATAK' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip","FaturaKdvsizTutar","Adet" ,cast (now() AS timestamp) AS "ETLDate"  
+select 'ODA YATAK' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip" ,"FaturaKdvsizTutar","Adet" ,cast (now() AS timestamp) AS "ETLDate"  
 from "MEMOBI_DM"."DM_OdaYatakMSG" 
 union all 
-select 'PATOLOJİ' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip","FaturaKdvsizTutar","Adet" ,cast (now() AS timestamp) AS "ETLDate" 
+select 'PATOLOJİ' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip", "FaturaKdvsizTutar","Adet" ,cast (now() AS timestamp) AS "ETLDate" 
 from "MEMOBI_DM"."DM_PatolojiMSG" 
 union all 
-select 'RADYOLOJİ' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip","FaturaKdvsizTutar","Adet" ,cast (now() AS timestamp) AS "ETLDate"  
+select 'RADYOLOJİ' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip" ,"FaturaKdvsizTutar","Adet" ,cast (now() AS timestamp) AS "ETLDate"  
 from "MEMOBI_DM"."DM_RadyolojiMSG" 
 union all 
-select 'GENETİK' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip","FaturaKdvsizTutar","Adet" ,cast (now() AS timestamp) AS "ETLDate"  
-from "MEMOBI_DM"."DM_GenetikMSG" 
-
+select 'GENETİK' as "Tip","SubeUstAdi","IslemYil","IslemAyNo","IslemTarih",'' as "DoktorTip","HastaTip","KurumTip" ,"FaturaKdvsizTutar","Adet" ,cast (now() AS timestamp) AS "ETLDate"  
+from "MEMOBI_DM"."DM_GenetikMSG"
+	 
 
 --Ameliyat
 with cte AS
@@ -61,10 +104,9 @@ with cte AS
 			JOIN "MEMOBI_DWH"."FCTProtokol" "a11" ON ("a10"."SubeId" = "a11"."SubeId" AND "a10"."ProtokolIslemTutarId"::varchar= "a11"."ProtokolIslemTutarId") 
 			left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
 			left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
-			JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
-			LEFT outer JOIN "MEMOBI_DWH"."DIMTarih" "a17" ON ("a11"."IslemTarihiId" = "a17"."TarihId") 
-			LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
-			WHERE "a11"."IslemTarihiId" >=20240101 
+			JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a10"."FaturaRaporTarihiId" = "a2"."TarihId") 
+			LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId")
+			WHERE "a10"."FaturaRaporTarihiId" >=20240101 
 				  AND "a11"."SubeId" NOT IN (3,36) 
 				  AND EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyat" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
 		UNION all 
@@ -116,10 +158,9 @@ with cte as
 		JOIN "MEMOBI_DWH"."FCTProtokol" "a11" ON ("a10"."SubeId" = "a11"."SubeId" AND "a10"."ProtokolIslemTutarId"::varchar= "a11"."ProtokolIslemTutarId") 
 		left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
 		left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
-		JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
-		LEFT outer JOIN "MEMOBI_DWH"."DIMTarih" "a17" ON ("a11"."IslemTarihiId" = "a17"."TarihId") 
-		LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
-		WHERE "a11"."IslemTarihiId" >=20240101 
+		JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a10"."FaturaRaporTarihiId" = "a2"."TarihId") 
+		LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId")
+	    WHERE "a10"."FaturaRaporTarihiId" >=20240101 
 			   AND "a11"."SubeId" NOT IN (3,36) 
 			   AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyatCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
 			   AND "a12"."Grup" = 'AMELİYAT DİĞER' 
@@ -129,7 +170,7 @@ with cte as
 			"a2"."Yilay" AS "IslemAyNo", 
 			"a2"."Tarih" AS "IslemTarih",
 			0 AS "Tutar", 
-			CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end AS "HastaTip",
+			CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end AS "HastaTip",					
 			case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' 
 						 when "a22"."AltKurumAdi" like 'CARİ%' or "a22"."KurumId" is null then 'CARİ'
 						 when "a22"."AltKurumAdi" like 'SGK%' then 'SGK'
@@ -146,8 +187,9 @@ with cte as
 	where CASE WHEN "a11"."PState"<>0 AND "a11"."PIState">1 AND "a11"."PITState"<>0 THEN 1 ELSE 0 END = 1 
 		  AND "a11"."IslemTarihiId" >=20240101 
 		  AND "a11"."SubeId" NOT IN (3,36) 
-		  AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
-	GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
+		  AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId")		  
+	GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",	 
+	CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
 	case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' when "a22"."AltKurumAdi" like 'CARİ%' or "a22"."KurumId" is null then 'CARİ' when "a22"."AltKurumAdi" like 'SGK%' then 'SGK' when "a22"."AltKurumAdi" is null and "a22"."KurumId" is not null then 'ANLAŞMALI KURUM'  else "a22"."AltKurumAdi" end 			
 ) 
 SELECT cte."SubeUstAdi", "IslemYil", "IslemAyNo", "IslemTarih","HastaTip","KurumTip",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", sum("Adet") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
@@ -170,10 +212,9 @@ with cte AS
   JOIN "MEMOBI_DWH"."FCTProtokol" "a11" ON("a10"."SubeId" = "a11"."SubeId" AND "a10"."ProtokolIslemTutarId"= "a11"."ProtokolIslemTutarId") 
   left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
   left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
-  JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
-  LEFT outer JOIN "MEMOBI_DWH"."DIMTarih" "a17" ON ("a11"."IslemTarihiId" = "a17"."TarihId") 
-  LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId")
-  WHERE "a11"."IslemTarihiId" >=20240101 
+  JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a10"."FaturaRaporTarihiId" = "a2"."TarihId") 
+  LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId")			
+  WHERE "a10"."FaturaRaporTarihiId" >=20240101 
 		AND "a11"."SubeId" NOT IN (3,36) 
 		AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyatCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
 		AND "a12"."Grup" = 'ANESTEZİ' 
@@ -196,12 +237,14 @@ with cte AS
 	left outer JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
 	LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
 	left outer join "MEMOBI_DWH"."DIMHastaCurrent" "a21" on "a21"."HastaMerkezId" = "a11"."HastaMerkezId"
-	left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKurumId"   and "a22"."KaynakSys" = 0
+	left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKurumId"   and "a22"."KaynakSys" = 0		
 	where CASE WHEN "a11"."PState"<>0 AND "a11"."PIState">1 AND "a11"."PITState"<>0 THEN 1 ELSE 0 END = 1 
 		  AND "a11"."IslemTarihiId" >=20240101 
-		  AND "a11"."SubeId" NOT IN (3,36) 
+		  AND "a11"."SubeId" NOT IN (3,36) 	  
 		  AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
-	GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
+	GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId",
+	 
+	"a16"."SubeUstId",CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
 	case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' when "a22"."AltKurumAdi" like 'CARİ%' or "a22"."KurumId" is null then 'CARİ' when "a22"."AltKurumAdi" like 'SGK%' then 'SGK' when "a22"."AltKurumAdi" is null and "a22"."KurumId" is not null then 'ANLAŞMALI KURUM'  else "a22"."AltKurumAdi" end 			
 	) 
 SELECT cte."SubeUstAdi", "IslemYil", "IslemAyNo", "IslemTarih","HastaTip","KurumTip",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", sum("Adet") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
@@ -224,12 +267,13 @@ with cte AS
   JOIN "MEMOBI_DWH"."FCTProtokol" "a11" ON ("a10"."SubeId" = "a11"."SubeId" AND "a10"."ProtokolIslemTutarId"= "a11"."ProtokolIslemTutarId") 
   left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
   left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
-  JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
+  JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a10"."FaturaRaporTarihiId" = "a2"."TarihId") 
   LEFT outer JOIN "MEMOBI_DWH"."DIMTarih" "a17" ON ("a11"."IslemTarihiId" = "a17"."TarihId") 
-  LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
-  WHERE "a11"."IslemTarihiId" >=20240101 
+  LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId")		  
+  WHERE "a10"."FaturaRaporTarihiId" >=20240101 
 	     AND "a11"."SubeId" NOT IN (3,36) 
-		 AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyatCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") AND "a12"."Grup" = 'BRANŞ SPESİFİK' 
+		 AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyatCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
+		 AND "a12"."Grup" = 'BRANŞ SPESİFİK' 
 	UNION all 
   SELECT "a20"."SubeUstAdi" AS "SubeUstAdi", 
 		 "a2"."Yil" AS "IslemYil", 
@@ -254,7 +298,9 @@ with cte AS
 	    AND "a11"."IslemTarihiId" >=20240101 
 		AND "a11"."SubeId" NOT IN (3,36) 
 		AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
-   GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
+   GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",
+    
+   CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
 case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' when "a22"."AltKurumAdi" like 'CARİ%' or "a22"."KurumId" is null then 'CARİ' when "a22"."AltKurumAdi" like 'SGK%' then 'SGK' when "a22"."AltKurumAdi" is null and "a22"."KurumId" is not null then 'ANLAŞMALI KURUM'  else "a22"."AltKurumAdi" end 			
 ) 
 SELECT cte."SubeUstAdi", "IslemYil", "IslemAyNo", "IslemTarih","HastaTip","KurumTip",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", sum("Adet") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
@@ -277,10 +323,9 @@ with cte as
   JOIN "MEMOBI_DWH"."FCTProtokol" "a11" ON ("a10"."SubeId" = "a11"."SubeId" AND "a10"."ProtokolIslemTutarId"::varchar= "a11"."ProtokolIslemTutarId") 
   left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
   left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
-  JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
-  LEFT outer JOIN "MEMOBI_DWH"."DIMTarih" "a17" ON ("a11"."IslemTarihiId" = "a17"."TarihId") 
+  JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a10"."FaturaRaporTarihiId" = "a2"."TarihId") 
   LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
-  WHERE "a11"."IslemTarihiId" >=20240101 
+  WHERE "a10"."FaturaRaporTarihiId" >=20240101 
 	     AND "a11"."SubeId" NOT IN (3,36) 
 		 AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyat" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
 		 AND "a12"."Grup" = 'CHECK UP' 
@@ -307,8 +352,10 @@ left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKur
    where CASE WHEN "a11"."PState"<>0 AND "a11"."PIState">1 AND "a11"."PITState"<>0 THEN 1 ELSE 0 END = 1 
 	     AND "a11"."IslemTarihiId" >=20240101 
 		 AND "a11"."SubeId" NOT IN (3,36) 
-		 AND "a12"."Grup" = 'CHECK UP' 
-   GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
+		 AND "a12"."Grup" = 'CHECK UP'   
+   GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId",
+    
+   "a16"."SubeUstId",CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
    case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' when "a22"."AltKurumAdi" like 'CARİ%' or "a22"."KurumId" is null then 'CARİ' when "a22"."AltKurumAdi" like 'SGK%' then 'SGK' when "a22"."AltKurumAdi" is null and "a22"."KurumId" is not null then 'ANLAŞMALI KURUM'  else "a22"."AltKurumAdi" end 			
 ) 
 SELECT cte."SubeUstAdi", "IslemYil", "IslemAyNo", "IslemTarih","HastaTip","KurumTip",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", sum("Adet") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
@@ -331,10 +378,10 @@ with cte as
   JOIN "MEMOBI_DWH"."FCTProtokol" "a11" ON ("a10"."SubeId" = "a11"."SubeId" AND "a10"."ProtokolIslemTutarId"= "a11"."ProtokolIslemTutarId") 
   left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
   left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
-  JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
+  JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a10"."FaturaRaporTarihiId" = "a2"."TarihId") 
   LEFT outer JOIN "MEMOBI_DWH"."DIMTarih" "a17" ON ("a11"."IslemTarihiId" = "a17"."TarihId") 
   LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
-  WHERE "a11"."IslemTarihiId" >=20240101 
+  WHERE "a10"."FaturaRaporTarihiId" >=20240101 
 	     AND "a11"."SubeId" NOT IN (3,36) 
 		 AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyatCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
 		 AND "a12"."Grup" = 'DİĞER' 
@@ -358,11 +405,15 @@ with cte as
    LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
    left outer join "MEMOBI_DWH"."DIMHastaCurrent" "a21" on "a21"."HastaMerkezId" = "a11"."HastaMerkezId"
    left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKurumId"   and "a22"."KaynakSys" = 0
+   inner JOIN "MEMOBI_DWH"."DIMBolumMapping" "a24" on "a24"."BolumId" = a11."PerformansBolumId" 
+	inner JOIN "MEMOBI_DWH"."DIMBolumUst" "a25" on "a25"."BolumUstId" = a24."BolumUstId"			
    where CASE WHEN "a11"."PState"<>0 AND "a11"."PIState">1 AND "a11"."PITState"<>0 THEN 1 ELSE 0 END = 1 
 		  AND "a11"."IslemTarihiId" >=20240101 
-		  AND "a11"."SubeId" NOT IN (3,36) 
+		  AND "a11"."SubeId" NOT IN (3,36) 		  
 		  AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
-	GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
+	GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",
+	 
+	CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
 	case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' when "a22"."AltKurumAdi" like 'CARİ%' or "a22"."KurumId" is null then 'CARİ' when "a22"."AltKurumAdi" like 'SGK%' then 'SGK' when "a22"."AltKurumAdi" is null and "a22"."KurumId" is not null then 'ANLAŞMALI KURUM'  else "a22"."AltKurumAdi" end 			
 	) 
 	SELECT cte."SubeUstAdi", "IslemYil", "IslemAyNo","IslemTarih" ,"HastaTip","KurumTip",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", sum("Adet") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
@@ -385,10 +436,10 @@ with cte as
   JOIN "MEMOBI_DWH"."FCTProtokol" "a11" ON ("a10"."SubeId" = "a11"."SubeId" AND "a10"."ProtokolIslemTutarId"= "a11"."ProtokolIslemTutarId") 
   left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
   left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
-  JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
+  JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a10"."FaturaRaporTarihiId" = "a2"."TarihId") 
   LEFT outer JOIN "MEMOBI_DWH"."DIMTarih" "a17" ON ("a11"."IslemTarihiId" = "a17"."TarihId") 
-  LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
-  WHERE "a11"."IslemTarihiId" >=20240101 
+  LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId")
+  WHERE "a10"."FaturaRaporTarihiId" >=20240101 
 	    AND "a11"."SubeId" NOT IN (3,36) 
 		AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyatCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
 		AND "a12"."Grup" = 'GENEL' 
@@ -411,12 +462,14 @@ with cte as
    left outer JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
    LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
    left outer join "MEMOBI_DWH"."DIMHastaCurrent" "a21" on "a21"."HastaMerkezId" = "a11"."HastaMerkezId"  
-   left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKurumId"   and "a22"."KaynakSys" = 0
+   left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKurumId"   and "a22"."KaynakSys" = 0  
    where CASE WHEN "a11"."PState"<>0 AND "a11"."PIState">1 AND "a11"."PITState"<>0 THEN 1 ELSE 0 END = 1 
 	     AND "a11"."IslemTarihiId" >=20240101 
 		 AND "a11"."SubeId" NOT IN (3,36) 
 		 AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
-	GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
+	GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",
+	 
+	CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
 case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' when "a22"."AltKurumAdi" like 'CARİ%' or "a22"."KurumId" is null then 'CARİ' when "a22"."AltKurumAdi" like 'SGK%' then 'SGK' when "a22"."AltKurumAdi" is null and "a22"."KurumId" is not null then 'ANLAŞMALI KURUM'  else "a22"."AltKurumAdi" end 			
 ) 
 SELECT cte."SubeUstAdi", "IslemYil", "IslemAyNo", "IslemTarih","HastaTip","KurumTip",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", sum("Adet") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
@@ -428,7 +481,7 @@ with cte as
 		"a2"."Yilay" AS "IslemAyNo", 
 		"a2"."Tarih" AS "IslemTarih",	
 		"a10"."Tutar" AS "FaturaKdvsizTutar",
-		"a10"."Uyruk" as "HastaTip",		
+		"a10"."Uyruk" as "HastaTip",	
 		case when "a10"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' 
 						 when "a10"."AltKurumAdi" like 'CARİ%' or "a10"."KurumId" is null then 'CARİ'
 						 when "a10"."AltKurumAdi" like 'SGK%' then 'SGK'
@@ -439,12 +492,11 @@ with cte as
  JOIN "MEMOBI_DWH"."FCTProtokol" "a11" ON ("a10"."SubeId" = "a11"."SubeId" AND "a10"."ProtokolIslemTutarId"= "a11"."ProtokolIslemTutarId") 
  left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
  left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
- JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
- LEFT outer JOIN "MEMOBI_DWH"."DIMTarih" "a17" ON ("a11"."IslemTarihiId" = "a17"."TarihId") 
- LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
- WHERE "a11"."IslemTarihiId" >=20240101 
+ JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a10"."FaturaRaporTarihiId" = "a2"."TarihId") 
+ LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 			
+ WHERE "a10"."FaturaRaporTarihiId" >=20240101 
 		AND "a11"."SubeId" NOT IN (3,36) 
-		AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyatCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
+		AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyatCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 		
 		AND "a12"."Grup" = 'GENETİK' 
 
 UNION all 
@@ -471,7 +523,9 @@ where CASE WHEN "a11"."PState"<>0 AND "a11"."PIState">1 AND "a11"."PITState"<>0 
 	 AND "a11"."IslemTarihiId" >=20240101 
 	 AND "a11"."SubeId" NOT IN (3,36) 
 	 AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
-GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end ,
+GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",
+ 
+CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end ,
 case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' when "a22"."AltKurumAdi" like 'CARİ%' or "a22"."KurumId" is null then 'CARİ' when "a22"."AltKurumAdi" like 'SGK%' then 'SGK' when "a22"."AltKurumAdi" is null and "a22"."KurumId" is not null then 'ANLAŞMALI KURUM'  else "a22"."AltKurumAdi" end 			
 ) 
 SELECT cte."SubeUstAdi", "IslemYil", "IslemAyNo","IslemTarih", "HastaTip","KurumTip",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", sum("Adet") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
@@ -494,10 +548,10 @@ FROM "MEMOBI_DM"."DM_FaturaRaporTablosuDetay" "a10"
 JOIN "MEMOBI_DWH"."FCTProtokol" "a11" ON ("a10"."SubeId" = "a11"."SubeId" AND "a10"."ProtokolIslemTutarId"= "a11"."ProtokolIslemTutarId") 
 left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
 left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
-JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
+JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a10"."FaturaRaporTarihiId" = "a2"."TarihId") 
 LEFT outer JOIN "MEMOBI_DWH"."DIMTarih" "a17" ON ("a11"."IslemTarihiId" = "a17"."TarihId") 
 LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
-WHERE "a11"."IslemTarihiId" >=20240101 
+WHERE "a10"."FaturaRaporTarihiId" >=20240101 
 	   AND "a11"."SubeId" NOT IN (3,36) 
 	   AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyatCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
 	   AND "a12"."Grup" IN ('İLAÇ','MALZEMELER','KAN ÜRÜNLERİ') 
@@ -523,9 +577,11 @@ left outer join "MEMOBI_DWH"."DIMHastaCurrent" "a21" on "a21"."HastaMerkezId" = 
 left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKurumId"   and "a22"."KaynakSys" = 0
 where CASE WHEN "a11"."PState"<>0 AND "a11"."PIState">1 AND "a11"."PITState"<>0 THEN 1 ELSE 0 END = 1 
 	 AND "a11"."IslemTarihiId" >=20240101 
-	 AND "a11"."SubeId" NOT IN (3,36) 
+	 AND "a11"."SubeId" NOT IN (3,36) 		  
 	 AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
-GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
+GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",
+ 
+CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
 case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' when "a22"."AltKurumAdi" like 'CARİ%' or "a22"."KurumId" is null then 'CARİ' when "a22"."AltKurumAdi" like 'SGK%' then 'SGK' when "a22"."AltKurumAdi" is null and "a22"."KurumId" is not null then 'ANLAŞMALI KURUM'  else "a22"."AltKurumAdi" end 			
 ) SELECT cte."SubeUstAdi", "IslemYil", "IslemAyNo", "IslemTarih","HastaTip","KurumTip",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", sum("Adet") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
 FROM cte GROUP BY "SubeUstAdi" ,"IslemYil","IslemAyNo","IslemTarih","HastaTip","KurumTip"
@@ -536,7 +592,7 @@ SELECT "a20"."SubeUstAdi" AS "SubeUstAdi",
 	   "a2"."Yilay" AS "IslemAyNo", 
 	   "a2"."Tarih" AS "IslemTarih",
 	   "a10"."Tutar" AS "FaturaKdvsizTutar",
-	   "a10"."Uyruk" as "HastaTip",	   
+	   "a10"."Uyruk" as "HastaTip",	 
 	  case when "a10"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' 
 						 when "a10"."AltKurumAdi" like 'CARİ%' or "a10"."KurumId" is null then 'CARİ'
 						 when "a10"."AltKurumAdi" like 'SGK%' then 'SGK'
@@ -547,10 +603,10 @@ FROM "MEMOBI_DM"."DM_FaturaRaporTablosuDetay" "a10"
 JOIN "MEMOBI_DWH"."FCTProtokol" "a11" ON ("a10"."SubeId" = "a11"."SubeId" AND "a10"."ProtokolIslemTutarId"= "a11"."ProtokolIslemTutarId") 
 left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
 left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
-JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
+JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a10"."FaturaRaporTarihiId" = "a2"."TarihId") 
 LEFT outer JOIN "MEMOBI_DWH"."DIMTarih" "a17" ON ("a11"."IslemTarihiId" = "a17"."TarihId") 
-LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
-WHERE "a11"."IslemTarihiId" >=20240101 
+LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId")			 
+WHERE "a10"."FaturaRaporTarihiId" >=20240101 
 	   AND "a11"."SubeId" NOT IN (3,36) 
 	   AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyatCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
 	   AND "a12"."Grup" = 'LABORATUVAR' 
@@ -573,12 +629,15 @@ left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId"
 left outer JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
 LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId")
 left outer join "MEMOBI_DWH"."DIMHastaCurrent" "a21" on "a21"."HastaMerkezId" = "a11"."HastaMerkezId"
-left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKurumId"   and "a22"."KaynakSys" = 0
+left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKurumId"   and "a22"."KaynakSys" = 0		
 where CASE WHEN "a11"."PState"<>0 AND "a11"."PIState">1 AND "a11"."PITState"<>0 THEN 1 ELSE 0 END = 1 
 	  AND "a11"."IslemTarihiId" >=20240101 
 	  AND "a11"."SubeId" NOT IN (3,36) 
+	  and "a22"."AltKurumAdi" NOT IN ('AK KLİNİK ARAŞTIRMA')		  
 	  AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
-	  GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
+	  GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",
+	   
+	  CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
 	  case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' when "a22"."AltKurumAdi" like 'CARİ%' or "a22"."KurumId" is null then 'CARİ' when "a22"."AltKurumAdi" like 'SGK%' then 'SGK' when "a22"."AltKurumAdi" is null and "a22"."KurumId" is not null then 'ANLAŞMALI KURUM'  else "a22"."AltKurumAdi" end 			
 	  ) 
 SELECT cte."SubeUstAdi", "IslemYil", "IslemAyNo", "IslemTarih","HastaTip","KurumTip",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", sum("Adet") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
@@ -601,10 +660,10 @@ FROM "MEMOBI_DM"."DM_FaturaRaporTablosuDetay" "a10"
 JOIN "MEMOBI_DWH"."FCTProtokol" "a11" ON ("a10"."SubeId" = "a11"."SubeId" AND "a10"."ProtokolIslemTutarId"::varchar= "a11"."ProtokolIslemTutarId") 
 left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
 left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
-JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
+JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a10"."FaturaRaporTarihiId" = "a2"."TarihId") 
 LEFT outer JOIN "MEMOBI_DWH"."DIMTarih" "a17" ON ("a11"."IslemTarihiId" = "a17"."TarihId") 
-LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
-WHERE "a11"."IslemTarihiId" >=20240101 
+LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId")
+WHERE "a10"."FaturaRaporTarihiId" >=20240101 
 	  AND "a11"."SubeId" NOT IN (3,36) 
 	  AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyat" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
 	  AND "a12"."Grup" = 'MUAYENE' 
@@ -631,7 +690,9 @@ left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKur
 where CASE WHEN "a11"."PState"<>0 AND "a11"."PIState">1 AND "a11"."PITState"<>0 THEN 1 ELSE 0 END = 1 
 	  AND "a11"."IslemTarihiId" >=20240101 
 	  AND "a11"."SubeId" NOT IN (3,36) 
-GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay","a2"."Tarih",CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' when "a22"."AltKurumAdi" like 'CARİ%' or "a22"."KurumId" is null then 'CARİ' when "a22"."AltKurumAdi" like 'SGK%' then 'SGK' when "a22"."AltKurumAdi" is null and "a22"."KurumId" is not null then 'ANLAŞMALI KURUM'  else "a22"."AltKurumAdi" end 			
+GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay","a2"."Tarih",CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
+ 
+case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' when "a22"."AltKurumAdi" like 'CARİ%' or "a22"."KurumId" is null then 'CARİ' when "a22"."AltKurumAdi" like 'SGK%' then 'SGK' when "a22"."AltKurumAdi" is null and "a22"."KurumId" is not null then 'ANLAŞMALI KURUM'  else "a22"."AltKurumAdi" end 			
 ) 
 SELECT cte."SubeUstAdi", "IslemYil", "IslemAyNo", "IslemTarih","HastaTip","KurumTip",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", sum("Adet") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
 FROM cte GROUP BY "SubeUstAdi" ,"IslemYil","IslemAyNo","IslemTarih","HastaTip","KurumTip"
@@ -642,7 +703,7 @@ SELECT "a20"."SubeUstAdi" AS "SubeUstAdi",
 		"a2"."Yilay" AS "IslemAyNo", 
 		"a2"."Tarih" AS "IslemTarih",
 		"a10"."Tutar" AS "FaturaKdvsizTutar",
-		"a10"."Uyruk" as "HastaTip",		
+		"a10"."Uyruk" as "HastaTip",	
      	case when "a10"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' 
 	    	 when "a10"."AltKurumAdi" like 'CARİ%' or "a10"."KurumId" is null then 'CARİ'
 			 when "a10"."AltKurumAdi" like 'SGK%' then 'SGK'
@@ -653,12 +714,12 @@ FROM "MEMOBI_DM"."DM_FaturaRaporTablosuDetay" "a10"
 JOIN "MEMOBI_DWH"."FCTProtokol" "a11" ON ("a10"."SubeId" = "a11"."SubeId" AND "a10"."ProtokolIslemTutarId"= "a11"."ProtokolIslemTutarId") 
 left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
 left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
-JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
+JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a10"."FaturaRaporTarihiId" = "a2"."TarihId") 
 LEFT outer JOIN "MEMOBI_DWH"."DIMTarih" "a17" ON ("a11"."IslemTarihiId" = "a17"."TarihId") 
-LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
-WHERE "a11"."IslemTarihiId" >=20240101 
+LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId")
+WHERE "a10"."FaturaRaporTarihiId" >=20240101 
   	   AND "a11"."SubeId" NOT IN (3,36) 
-	   AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyatCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
+	   AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyatCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 	 
 	   AND "a12"."Grup" = 'ODA YATAK' 
 UNION all 
 SELECT "a20"."SubeUstAdi" AS "SubeUstAdi", 
@@ -684,7 +745,9 @@ where CASE WHEN "a11"."PState"<>0 AND "a11"."PIState">1 AND "a11"."PITState"<>0 
 	   AND "a11"."IslemTarihiId" >=20240101 
 	   AND "a11"."SubeId" NOT IN (3,36) 
 	   AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
-GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId" ,CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
+GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId",
+ 
+"a16"."SubeUstId" ,CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
 case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' 
 						 when "a22"."AltKurumAdi" like 'CARİ%' or "a22"."KurumId" is null then 'CARİ'
 						 when "a22"."AltKurumAdi" like 'SGK%' then 'SGK'
@@ -701,7 +764,7 @@ SELECT "a20"."SubeUstAdi" AS "SubeUstAdi",
 		"a2"."Tarih" AS "IslemTarih",	   
 	   "a10"."Tutar" AS "FaturaKdvsizTutar", 
 	   "a10"."Uyruk" as "HastaTip",
-		case when "a10"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' 
+	   case when "a10"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' 
 	    	 when "a10"."AltKurumAdi" like 'CARİ%' or "a10"."KurumId" is null then 'CARİ'
 			 when "a10"."AltKurumAdi" like 'SGK%' then 'SGK'
 			 when "a10"."AltKurumAdi" is null and "a10"."KurumId" is not null then 'ANLAŞMALI KURUM' 
@@ -711,10 +774,10 @@ FROM "MEMOBI_DM"."DM_FaturaRaporTablosuDetay" "a10"
 JOIN "MEMOBI_DWH"."FCTProtokol" "a11" ON ("a10"."SubeId" = "a11"."SubeId" AND "a10"."ProtokolIslemTutarId"= "a11"."ProtokolIslemTutarId") 
 left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
 left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
-JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
+JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a10"."FaturaRaporTarihiId" = "a2"."TarihId") 
 LEFT outer JOIN "MEMOBI_DWH"."DIMTarih" "a17" ON ("a11"."IslemTarihiId" = "a17"."TarihId") 
-LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
-WHERE "a11"."IslemTarihiId" >=20240101 
+LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId")
+WHERE "a10"."FaturaRaporTarihiId" >=20240101 
 	  AND "a11"."SubeId" NOT IN (3,36) 
 	  AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyatCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
 	  AND "a12"."Grup" = 'PATOLOJİ' 
@@ -737,10 +800,10 @@ left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId"
 left outer JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
 LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId")
 left outer join "MEMOBI_DWH"."DIMHastaCurrent" "a21" on "a21"."HastaMerkezId" = "a11"."HastaMerkezId"
-left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKurumId"   and "a22"."KaynakSys" = 0
+left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKurumId"   and "a22"."KaynakSys" = 0		
 where CASE WHEN "a11"."PState"<>0 AND "a11"."PIState">1 AND "a11"."PITState"<>0 THEN 1 ELSE 0 END = 1 
 	  AND "a11"."IslemTarihiId" >=20240101 
-	  AND "a11"."SubeId" NOT IN (3,36) 
+	  AND "a11"."SubeId" NOT IN (3,36) 	  
 	  AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
 GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",
 	     CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
@@ -751,7 +814,7 @@ case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM'
 					else "a22"."AltKurumAdi" end
 		 ) 
 SELECT cte."SubeUstAdi", "IslemYil", "IslemAyNo", "IslemTarih","HastaTip","KurumTip",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", sum("Adet") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
-FROM cte GROUP BY "SubeUstAdi" ,"IslemYil","IslemAyNo","IslemTarih","HastaTip","KurumTip"
+FROM cte GROUP BY "SubeUstAdi" ,"IslemYil","IslemAyNo","IslemTarih"
 --Radyoloji
 with cte as(
 SELECT "a20"."SubeUstAdi" AS "SubeUstAdi", 
@@ -759,7 +822,7 @@ SELECT "a20"."SubeUstAdi" AS "SubeUstAdi",
 	   "a2"."Yilay" AS "IslemAyNo",
 		"a2"."Tarih" AS "IslemTarih",	   	   
 	   "a10"."Tutar" AS "FaturaKdvsizTutar",
-		"a10"."Uyruk" as "HastaTip",	   
+		"a10"."Uyruk" as "HastaTip",
 		case when "a10"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM' 
 	    	 when "a10"."AltKurumAdi" like 'CARİ%' or "a10"."KurumId" is null then 'CARİ'
 			 when "a10"."AltKurumAdi" like 'SGK%' then 'SGK'
@@ -770,10 +833,10 @@ SELECT "a20"."SubeUstAdi" AS "SubeUstAdi",
  JOIN "MEMOBI_DWH"."FCTProtokol" "a11" ON ("a10"."SubeId" = "a11"."SubeId" AND "a10"."ProtokolIslemTutarId"= "a11"."ProtokolIslemTutarId") 
  left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
  left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
- JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
+ JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a10"."FaturaRaporTarihiId" = "a2"."TarihId") 
  LEFT outer JOIN "MEMOBI_DWH"."DIMTarih" "a17" ON ("a11"."IslemTarihiId" = "a17"."TarihId") 
- LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
- WHERE "a11"."IslemTarihiId" >=20240101 
+ LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 			
+ WHERE "a10"."FaturaRaporTarihiId" >=20240101  
 		AND "a11"."SubeId" NOT IN (3,36) 
 		AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolAmeliyatCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
 		AND "a12"."Grup" = 'RADYOLOJİ' 
@@ -796,12 +859,65 @@ left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId"
 left outer JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
 LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId")
 left outer join "MEMOBI_DWH"."DIMHastaCurrent" "a21" on "a21"."HastaMerkezId" = "a11"."HastaMerkezId" 
-left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKurumId"   and "a22"."KaynakSys" = 0
+left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKurumId"   and "a22"."KaynakSys" = 0		
 where CASE WHEN "a11"."PState"<>0 AND "a11"."PIState">1 AND "a11"."PITState"<>0 THEN 1 ELSE 0 END = 1 
 	   AND "a11"."IslemTarihiId" >=20240101 
-	   AND "a11"."SubeId" NOT IN (3,36) 
+	   AND "a11"."SubeId" NOT IN (3,36)		  	   
 	   AND NOT EXISTS (SELECT 1 FROM "MEMOBI_DM"."ProtokolCheckup" pa WHERE pa."SubeId" = "a11"."SubeId" AND pa."ProtokolId" = "a11"."ProtokolId") 
-GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
-case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM'  when "a22"."AltKurumAdi" like 'CARİ%' or "a22"."KurumId" is null then 'CARİ' when "a22"."AltKurumAdi" like 'SGK%' then 'SGK' when "a22"."AltKurumAdi" is null and "a22"."KurumId" is not null then 'ANLAŞMALI KURUM' else "a22"."AltKurumAdi" end) 
+GROUP BY "a20"."SubeUstAdi", "a2"."Yil","a2"."Yilay" ,"a2"."Tarih","a12"."Grup" ,"a11"."ProtokolId","a11"."IslemTarihiId","a16"."SubeUstId",
+CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end,
+case when "a22"."AltKurumAdi" like 'AK%' then 'ANLAŞMALI KURUM'  when "a22"."AltKurumAdi" like 'CARİ%' or "a22"."KurumId" is null then 'CARİ' when "a22"."AltKurumAdi" like 'SGK%' then 'SGK' when "a22"."AltKurumAdi" is null and "a22"."KurumId" is not null then 'ANLAŞMALI KURUM' else "a22"."AltKurumAdi" end
+) 
 SELECT cte."SubeUstAdi", "IslemYil", "IslemAyNo","IslemTarih", "HastaTip","KurumTip",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", sum("Adet") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
 FROM cte GROUP BY "SubeUstAdi" ,"IslemYil","IslemAyNo","IslemTarih","HastaTip","KurumTip"
+
+
+--------------------------------------
+
+
+--HastaSayısı
+with cte as(	 
+SELECT "a20"."SubeUstAdi" AS "SubeUstAdi", 
+	    "a2"."Yil" AS "IslemYil", 
+		"a2"."Yilay" AS "IslemAyNo",					
+		"a11"."HastaMerkezId",
+		case when "a11"."GelisTipiId" = 'Y' then 'Yatan' else 'Ayaktan' end as "GelisTipi",
+		CASE WHEN coalesce("a21"."UyrukId",1)=1 THEN 'Yerli' ELSE 'Yabanci' end AS "HastaTip",
+		CASE WHEN "a11"."BolumId" = 1365 THEN 'Misafir' ELSE 'Staf' END AS "DoktorTip" 
+FROM "MEMOBI_DWH"."FCTProtokol" "a11" 
+left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
+left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
+left outer JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
+LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
+left outer join "MEMOBI_DWH"."DIMHastaCurrent" "a21" on "a21"."HastaMerkezId" = "a11"."HastaMerkezId" 
+left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKurumId"   and "a22"."KaynakSys" = 0
+where CASE WHEN "a11"."PState"<>0 AND "a11"."PIState">1 AND "a11"."PITState"<>0 THEN 1 ELSE 0 END = 1 
+	  AND "a11"."IslemTarihiId" >=20240101 
+	  AND "a11"."SubeId" NOT IN (3,36) 
+) 
+SELECT cte."SubeUstAdi", "IslemYil", "IslemAyNo","DoktorTip", "HastaTip",count(distinct "HastaMerkezId") as "HastaSayisi",cast (now() AS timestamp) AS "ETLDate" 
+FROM cte 
+GROUP BY cte."SubeUstAdi", "IslemYil", "IslemAyNo","DoktorTip", "HastaTip"
+--Doktor Sayısı
+with cte as(	 
+SELECT "a20"."SubeUstAdi" AS "SubeUstAdi", 
+	    "a2"."Yil" AS "IslemYil", 
+		"a2"."Yilay" AS "IslemAyNo",					
+		"a118"."PersonelId",
+		CASE WHEN "a11"."BolumId" = 1365 THEN 'Misafir' ELSE 'Staf' END AS "DoktorTip" 
+FROM "MEMOBI_DWH"."FCTProtokol" "a11" 
+left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("a11"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
+left outer JOIN "MEMOBI_DWH"."DIMSube" "a16" ON ("a11"."SubeId" = "a16"."SubeId") 
+left outer JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ("a11"."IslemTarihiId" = "a2"."TarihId") 
+LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a20" ON ("a20"."SubeUstId" = "a16"."SubeUstId") 
+left outer join "MEMOBI_DWH"."DIMHastaCurrent" "a21" on "a21"."HastaMerkezId" = "a11"."HastaMerkezId" 
+left join "MEMOBI_DM"."DM_XLS_Kurum" "a22" on "a22"."KurumId" = "a11"."BaskinKurumId"   and "a22"."KaynakSys" = 0
+LEFT JOIN "DM_XLS_Doktor" a18 ON a11."PerformansDoktorId" = a18."DoktorId" AND a11."SubeId" = a18."SubeId" AND a11."PerformansBolumId" = a18."ServisId" AND (a18."MasterDoktorId" <> ALL (ARRAY['-999'::integer, '-9999'::integer])) 
+LEFT JOIN "VW_DIMPersonelBirlesim" a118 ON a18."MasterDoktorId" = a118."PersonelId"
+where CASE WHEN "a11"."PState"<>0 AND "a11"."PIState">1 AND "a11"."PITState"<>0 THEN 1 ELSE 0 END = 1 
+	  AND "a11"."IslemTarihiId" >=20240101 
+	  AND "a11"."SubeId" NOT IN (3,36) 
+) 
+SELECT cte."SubeUstAdi", "IslemYil", "IslemAyNo","DoktorTip", count(distinct "PersonelId") as "DoktorSayisi",cast (now() AS timestamp) AS "ETLDate" 
+FROM cte 
+GROUP BY cte."SubeUstAdi", "IslemYil", "IslemAyNo","DoktorTip"
