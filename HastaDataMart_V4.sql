@@ -69,39 +69,39 @@ SELECT T."OncekiAySonGun" AS "Ref_Tarih",
 	   COALESCE(HF."Ankara_Flag_03", 0) AS "Ankara_Flag_03", 
 	   COALESCE(HF."Dicle_Flag_03", 0) AS "Dicle_Flag_03",
 	   COALESCE(HF."Bahcelievler_Flag_03", 0) AS "Bahcelievler_Flag_03",
-	   COALESCE(HF."Sisli_Flag__06", 0) AS "Sisli_Flag_06", 
-	   COALESCE(HF."Atasehir_Flag__06", 0) AS "Atasehir_Flag_06",
-	   COALESCE(HF."Antalya_Flag__06", 0) AS "Antalya_Flag_06", 
-	   COALESCE(HF."Hizmet_Flag__06", 0) AS "Hizmet_Flag_06", 
-	   COALESCE(HF."Diyarbakir_Flag__06", 0) AS "Diyarbakir_Flag_06", 
-	   COALESCE(HF."MedStarAntalya_Flag__06", 0) AS "MedStarAntalya_Flag_06",
-	   COALESCE(HF."Topcular_Flag__06", 0) AS "Topcular_Flag_06", 
-	   COALESCE(HF."Kayseri_Flag__06", 0) AS "Kayseri_Flag_06",
-	   COALESCE(HF."Ankara_Flag__06", 0) AS "Ankara_Flag_06", 
-	   COALESCE(HF."Dicle_Flag__06", 0) AS "Dicle_Flag_06", 
-	   COALESCE(HF."Bahcelievler_Flag__06", 0) AS "Bahcelievler_Flag_06", 
-	   COALESCE(HF."Sisli_Flag__012", 0) AS "Sisli_Flag_012", 
-	   COALESCE(HF."Atasehir_Flag__012", 0) AS "Atasehir_Flag_012",
-	   COALESCE(HF."Antalya_Flag__012", 0) AS "Antalya_Flag_012", 
-	   COALESCE(HF."Hizmet_Flag__012", 0) AS "Hizmet_Flag_012",
-	   COALESCE(HF."Diyarbakir_Flag__012", 0) AS "Diyarbakir_Flag_012", 
-	   COALESCE(HF."MedStarAntalya_Flag__012", 0) AS "MedStarAntalya_Flag_012",
-	   COALESCE(HF."Topcular_Flag__012", 0) AS "Topcular_Flag_012", 
-	   COALESCE(HF."Kayseri_Flag__012", 0) AS "Kayseri_Flag_012", 
-	   COALESCE(HF."Ankara_Flag__012", 0) AS "Ankara_Flag_012",
-	   COALESCE(HF."Dicle_Flag__012", 0) AS "Dicle_Flag_012", 
-	   COALESCE(HF."Bahcelievler_Flag__012", 0) AS "Bahcelievler_Flag_012",
-	   COALESCE(HF."Sisli_Flag__024", 0) AS "Sisli_Flag_024", 
-	   COALESCE(HF."Atasehir_Flag__024", 0) AS "Atasehir_Flag_024",
-	   COALESCE(HF."Antalya_Flag__024", 0) AS "Antalya_Flag_024", 
-	   COALESCE(HF."Hizmet_Flag__024", 0) AS "Hizmet_Flag_024", 
-	   COALESCE(HF."Diyarbakir_Flag__024", 0) AS "Diyarbakir_Flag_024",
-	   COALESCE(HF."MedStarAntalya_Flag__024", 0) AS "MedStarAntalya_Flag_024",
-	   COALESCE(HF."Topcular_Flag__024", 0) AS "Topcular_Flag_024", 
-	   COALESCE(HF."Kayseri_Flag__024", 0) AS "Kayseri_Flag_024", 
-	   COALESCE(HF."Ankara_Flag__024", 0) AS "Ankara_Flag_024", 
-	   COALESCE(HF."Dicle_Flag__024", 0) AS "Dicle_Flag_024", 
-	   COALESCE(HF."Bahcelievler_Flag__024", 0) AS "Bahcelievler_Flag_024", 
+	   COALESCE(HF."Sisli_Flag_06", 0) AS "Sisli_Flag_06", 
+	   COALESCE(HF."Atasehir_Flag_06", 0) AS "Atasehir_Flag_06",
+	   COALESCE(HF."Antalya_Flag_06", 0) AS "Antalya_Flag_06", 
+	   COALESCE(HF."Hizmet_Flag_06", 0) AS "Hizmet_Flag_06", 
+	   COALESCE(HF."Diyarbakir_Flag_06", 0) AS "Diyarbakir_Flag_06", 
+	   COALESCE(HF."MedStarAntalya_Flag_06", 0) AS "MedStarAntalya_Flag_06",
+	   COALESCE(HF."Topcular_Flag_06", 0) AS "Topcular_Flag_06", 
+	   COALESCE(HF."Kayseri_Flag_06", 0) AS "Kayseri_Flag_06",
+	   COALESCE(HF."Ankara_Flag_06", 0) AS "Ankara_Flag_06", 
+	   COALESCE(HF."Dicle_Flag_06", 0) AS "Dicle_Flag_06", 
+	   COALESCE(HF."Bahcelievler_Flag_06", 0) AS "Bahcelievler_Flag_06", 
+	   COALESCE(HF."Sisli_Flag_012", 0) AS "Sisli_Flag_012", 
+	   COALESCE(HF."Atasehir_Flag_012", 0) AS "Atasehir_Flag_012",
+	   COALESCE(HF."Antalya_Flag_012", 0) AS "Antalya_Flag_012", 
+	   COALESCE(HF."Hizmet_Flag_012", 0) AS "Hizmet_Flag_012",
+	   COALESCE(HF."Diyarbakir_Flag_012", 0) AS "Diyarbakir_Flag_012", 
+	   COALESCE(HF."MedStarAntalya_Flag_012", 0) AS "MedStarAntalya_Flag_012",
+	   COALESCE(HF."Topcular_Flag_012", 0) AS "Topcular_Flag_012", 
+	   COALESCE(HF."Kayseri_Flag_012", 0) AS "Kayseri_Flag_012", 
+	   COALESCE(HF."Ankara_Flag_012", 0) AS "Ankara_Flag_012",
+	   COALESCE(HF."Dicle_Flag_012", 0) AS "Dicle_Flag_012", 
+	   COALESCE(HF."Bahcelievler_Flag_012", 0) AS "Bahcelievler_Flag_012",
+	   COALESCE(HF."Sisli_Flag_024", 0) AS "Sisli_Flag_024", 
+	   COALESCE(HF."Atasehir_Flag_024", 0) AS "Atasehir_Flag_024",
+	   COALESCE(HF."Antalya_Flag_024", 0) AS "Antalya_Flag_024", 
+	   COALESCE(HF."Hizmet_Flag_024", 0) AS "Hizmet_Flag_024", 
+	   COALESCE(HF."Diyarbakir_Flag_024", 0) AS "Diyarbakir_Flag_024",
+	   COALESCE(HF."MedStarAntalya_Flag_024", 0) AS "MedStarAntalya_Flag_024",
+	   COALESCE(HF."Topcular_Flag_024", 0) AS "Topcular_Flag_024", 
+	   COALESCE(HF."Kayseri_Flag_024", 0) AS "Kayseri_Flag_024", 
+	   COALESCE(HF."Ankara_Flag_024", 0) AS "Ankara_Flag_024", 
+	   COALESCE(HF."Dicle_Flag_024", 0) AS "Dicle_Flag_024", 
+	   COALESCE(HF."Bahcelievler_Flag_024", 0) AS "Bahcelievler_Flag_024", 
 	   COALESCE(HFA."Sisli_Flag", 0) AS "Sisli_Flag",
 	   COALESCE(HFA."Atasehir_Flag", 0) AS "Atasehir_Flag", 
 	   COALESCE(HFA."Antalya_Flag", 0) AS "Antalya_Flag", 
@@ -314,6 +314,7 @@ LEFT JOIN "MEMOBI_DWH"."DIMHastaRandevu" HR ON HR."HastaMerkezId"=HD."HastaMerke
 LEFT JOIN "MEMOBI_DWH"."DIMHastaKurum" HK ON HK."HastaMerkezId" = HD."HastaMerkezId"  
 LEFT JOIN "MEMOBI_DWH"."DIMHastaMisafirHekim" MH ON MH."HastaMerkezId" = HD."HastaMerkezId" 
 LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T ON 1=1
+where "Tenure_Month" is not null
 
 --HastaDetails
 with cte as 
@@ -536,9 +537,8 @@ LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId"
 left join "MEMOBI_DWH"."DIMBolum" DBolum ON DBolum."BolumId" = FP."UygulayanBolumId"
 --LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1 = 1  
 --where cast (fp."IslemTarihi" as date) <= T."OncekiAySonGun" 
-group by FP."HastaMerkezId"
+group by HC."HastaMerkezId"
 --HastaFlag24
-with cte as(
 SELECT hc."HastaMerkezId", 
 	   MAX(FP."IslemTarihi") AS "Max_ProtokolIslemTarih_024", 
 	   MIN(FP."IslemTarihi") AS "Min_ProtokolIslemTarih_024", 
@@ -705,9 +705,7 @@ left JOIN "MEMOBI_DWH"."DIMBolum" DBolum ON DBolum."BolumId" = FP."BolumId"
 LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId"
 LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T on 1 = 1 
 where cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" 
-GROUP BY FP."HastaMerkezId"
-) 
-select * from cte
+GROUP BY hc."HastaMerkezId"
 --HastaCiro
 with cte as 
 (SELECT HC."HastaMerkezId",
@@ -774,8 +772,9 @@ with cte as
 FROM "FCTProtokol" FP 
 LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId"
 LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T ON 1=1 
-LEFT JOIN "MEMOBI_ODS_MRKZ"."Finans_GunlukKur" GK ON cast(GK."Tarih" AS Date)= cast(FP."IslemTarihi" AS date) AND GK."ParaBirimiId" = 2 
-GROUP BY HC."HastaMerkezId",GK."DovizAlis"
+LEFT JOIN "MEMOBI_DM"."DM_DovizKuru" GK ON cast(GK."Tarih" AS Date)= cast(FP."IslemTarihi" AS date) AND GK."ParaBirimiId" = 2 
+where case when FP."PState"<>0 and FP."PIState">1 and FP."PITState"<>0 then 1 else 0 end = 1
+GROUP BY HC."HastaMerkezId",cast(FP."IslemTarihi" AS date),GK."DovizAlis"
 ) 
 SELECT "HastaMerkezId",
 	   SUM("Total_Ciro_Kdvli_USD") AS "Total_Ciro_Kdvli_Usd", 
@@ -1281,7 +1280,7 @@ FROM( SELECT HC."HastaMerkezId",
 	  LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId"
 	  LEFT JOIN "MEMOBI_DWH"."DIMKurumTipi" KT ON KT."KurumTipiId" = FP."KurumTipiId" 
 	  LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T ON 1=1 
-	  GROUP BY HC."HastaMerkezId" 
+	  GROUP BY HC."HastaMerkezId"
 	  UNION all 
 	  SELECT y."HastaMerkezId",
 		     0 AS "Kurum_Tip_OSS_03",
@@ -1315,14 +1314,14 @@ FROM( SELECT HC."HastaMerkezId",
 			'' AS "SonOSSKurumAdi", 
 			'' AS "SonAKKKurumAdi", 
 			'' AS "BaskınKurumTipi" 
-		FROM (SELECT distinct hc."HastaMerkezId", 
+		FROM (SELECT hc."HastaMerkezId", 
 					 "KurumTipiId" AS "KurumTipiId", 
-					 ROW_NUMBER() OVER(PARTITION BY FP."HastaMerkezId" ORDER BY cast(FP."ProtokolAcilisTarihi" AS date) desc) "Sira" 
+					 ROW_NUMBER() OVER(PARTITION BY hc."HastaMerkezId" ORDER BY cast(FP."ProtokolAcilisTarihi" AS date) desc) "Sira" 
 			  FROM "FCTProtokol" FP 			  
 			  LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId"  	  
 			  GROUP BY hc."HastaMerkezId",cast(FP."ProtokolAcilisTarihi" AS date),"KurumTipiId" 
 			  ) y WHERE "Sira"= 1 
-		GROUP BY y."HastaMerkezId" 
+			  GROUP BY y."HastaMerkezId" 
 		UNION all 
 		select z."HastaMerkezId", 
 			   0 AS "Kurum_Tip_OSS_03",
@@ -1403,34 +1402,14 @@ FROM( SELECT HC."HastaMerkezId",
 				WHEN max(y."KurumTipiId") = 1 THEN 'SGK' 
 				WHEN max(y."KurumTipiId") = 2 THEN 'OSS' 
 				WHEN max(y."KurumTipiId") = 3 THEN 'AKK' END AS "BaskınKurumTipi" 
-		FROM (SELECT distinct hc."HastaMerkezId", 
+		FROM (SELECT hc."HastaMerkezId", 
 					 "KurumTipiId" AS "KurumTipiId", 
-					 ROW_NUMBER() OVER(PARTITION BY FP."HastaMerkezId" ORDER BY SUM("KdvsizHizmetTutari") desc) "Sira" 
+					 ROW_NUMBER() OVER(PARTITION BY hc."HastaMerkezId" ORDER BY SUM("KdvsizHizmetTutari") desc) "Sira" 
 			 FROM "FCTProtokol" FP 
 			  LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId"
 			 GROUP BY hc."HastaMerkezId",cast(FP."ProtokolAcilisTarihi" AS date),"KurumTipiId" 
 			 ) y 
 			 WHERE "Sira"= 1 GROUP BY y."HastaMerkezId" 
-			 ) t 
-			 GROUP BY t."HastaMerkezId"
-		from ( 
-		select y."HastaMerkezId",
-			  MAX("OSSKurumId") as "OSSKurumId",
-			  MAX("AKKurumId") as "AKKurumId" 
-			  from( select HP."HastaMerkezId",
-						   HP."SubeId",
-						   HP."KaynakSys", 
-						   MAX("ProtokolId") as "ProtokolIC" 
-					from "DIMHastaProtokol" HP 
-					LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T ON 1=1 
-					where cast (HP."AcilisTarihi" AS date) <=T."OncekiAySonGun" 
-					group by HP."HastaMerkezId",HP."SubeId",HP."KaynakSys" 
-		) y inner join "FCTProtokol" FP on fp."ProtokolId" = y."ProtokolIC" and fp."SubeId" =y."SubeId" and fp."KaynakSys" = y."KaynakSys" 
-		group by y."HastaMerkezId" 
-		)z 
-		left join "MEMOBI_DM"."DM_XLS_Kurum" OSS on OSS."KurumId" = z."OSSKurumId" 
-		left join "MEMOBI_DM"."DM_XLS_Kurum" AKK on AKK."KurumId" = z."AKKurumId" 
-		group by z."HastaMerkezId" 
 		union all 
 		SELECT y."HastaMerkezId",
 			  0 AS "Kurum_Tip_OSS_03",
@@ -1464,15 +1443,16 @@ FROM( SELECT HC."HastaMerkezId",
 				   WHEN max(y."KurumTipiId") = 1 THEN 'SGK' 
 				   WHEN max(y."KurumTipiId") = 2 THEN 'OSS' 
 				   WHEN max(y."KurumTipiId") = 3 THEN 'AKK' END AS "BaskınKurumTipi" 
-		FROM (SELECT distinct HC."HastaMerkezId", 
+		FROM (SELECT HC."HastaMerkezId", 
 					 "KurumTipiId" AS "KurumTipiId", 
-					 ROW_NUMBER() OVER(PARTITION BY FP."HastaMerkezId" ORDER BY SUM("KdvsizHizmetTutari") desc) "Sira" 
+					 ROW_NUMBER() OVER(PARTITION BY HC."HastaMerkezId" ORDER BY SUM("KdvsizHizmetTutari") desc) "Sira" 
 			  FROM "FCTProtokol" FP
 			  LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId"
 			  GROUP BY HC."HastaMerkezId",cast(FP."ProtokolAcilisTarihi" AS date),"KurumTipiId" 
 			  ) y WHERE "Sira"= 1 
 		GROUP BY y."HastaMerkezId" 
-		) t GROUP BY t."HastaMerkezId"
+		) t 		
+		GROUP BY t."HastaMerkezId"
 --HastaSegment
 select  "HastaMerkezId", "HastaTCKimlikNo",
 		y."SegmentId",
