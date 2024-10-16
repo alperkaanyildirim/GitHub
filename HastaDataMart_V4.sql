@@ -695,10 +695,11 @@ SELECT hc."HastaMerkezId",
 	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Üroloji%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Uroloji_012", 
 	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Üroloji%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OnUcAyOnceSonGun" then 1 else 0 end ) as "Hizmet_Uroloji_013_024", 
 	   MAX( case WHEN DBolum."BolumAdi" LIKE '%Üroloji%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then 1 else 0 end ) as "Hizmet_Uroloji_024", 
-	   COUNT(distinct DBolum."BolumId") as "Farkli_BolumAdet", COUNT( distinct case WHEN cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then DBolum."BolumId" end ) as "Farkli_BolumAdet_03", 
-	   COUNT( distinct case WHEN cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then DBolum."BolumId" end ) as "Farkli_BolumAdet_06", 
-	   COUNT( distinct case WHEN cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then DBolum."BolumId" end ) as "Farkli_BolumAdet_012", 
-	   COUNT( distinct case WHEN cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then DBolum."BolumId" end ) as "Farkli_BolumAdet_24", 
+	   COUNT(distinct case when DBolum."BolumAdi" not like  '%Laboratuvar%' and DBolum."BolumAdi" not like  '%Radyoloji%' then DBolum."BolumId" end ) as "Farkli_BolumAdet", 
+	   COUNT( distinct case WHEN DBolum."BolumAdi" not like  '%Laboratuvar%' and DBolum."BolumAdi" not like  '%Radyoloji%' and cast (fp."IslemTarihi" as date) between T."UcAyOnceIlkGun" and T."OncekiAySonGun" then DBolum."BolumId" end ) as "Farkli_BolumAdet_03", 
+	   COUNT( distinct case WHEN DBolum."BolumAdi" not like  '%Laboratuvar%' and DBolum."BolumAdi" not like  '%Radyoloji%'  and cast (fp."IslemTarihi" as date) between T."AltiAyOnceIlkGun" and T."OncekiAySonGun" then DBolum."BolumId" end ) as "Farkli_BolumAdet_06", 
+	   COUNT( distinct case WHEN DBolum."BolumAdi" not like  '%Laboratuvar%' and DBolum."BolumAdi" not like  '%Radyoloji%' and cast (fp."IslemTarihi" as date) between T."OnIkiAyOnceIlkGun" and T."OncekiAySonGun" then DBolum."BolumId" end ) as "Farkli_BolumAdet_012", 
+	   COUNT( distinct case WHEN DBolum."BolumAdi" not like  '%Laboratuvar%' and DBolum."BolumAdi" not like  '%Radyoloji%' and cast (fp."IslemTarihi" as date) between T."YirmiDortAyOnceIlkGun" and T."OncekiAySonGun" then DBolum."BolumId" end ) as "Farkli_BolumAdet_24", 	
 	   cast (now() AS timestamp) AS "ETLDate" 
 FROM "DIMHastaProtokol" FP 
 left JOIN "MEMOBI_DWH"."DIMBolum" DBolum ON DBolum."BolumId" = FP."BolumId"
