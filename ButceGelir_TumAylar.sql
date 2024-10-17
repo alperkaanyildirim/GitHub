@@ -1,4 +1,4 @@
---Ameliyat protokollerini Bul:
+--Ameliyat protokollerini Bul: ("MEMOBI_DM"."ProtokolAmeliyatDetayTestTumAylar")
 select distinct ff."SubeId" as "SubeId",f."SubeId" as "ProtokolSubeId",f."ProtokolId",ff."FaturaId",'P_AMELIYATLAR' as "Tip",cast (now() AS timestamp) AS "ETLDate"
 from "MEMOBI_DWH"."FCTProtokol" f
 inner join "MEMOBI_DM"."DM_FaturaRaporTablosuDetay" ff on f."ProtokolIslemTutarId"::varchar =ff."ProtokolIslemTutarId"::varchar
@@ -9,7 +9,7 @@ left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("f"."HizmetMalzemeId" 
 where ff."FaturaRaporTarihiId"  >= 20240101
      and "a12"."Grup" = 'AMELİYATLAR';
 
---CheckUp protokollerini Bul:
+--CheckUp protokollerini Bul: ("MEMOBI_DM"."ProtokolCheckupDetayTestTumAylar")
 select distinct ff."SubeId" as "SubeId",f."SubeId" as "ProtokolSubeId",f."ProtokolId",ff."FaturaId",'P_CHECKUP' as "Tip",cast (now() AS timestamp) AS "ETLDate"	
 from "MEMOBI_DWH"."FCTProtokol" f
 inner join "MEMOBI_DM"."DM_FaturaRaporTablosuDetay" ff on f."ProtokolIslemTutarId"::varchar =ff."ProtokolIslemTutarId"::varchar
@@ -26,7 +26,7 @@ select * from "MEMOBI_DM"."ProtokolCheckupDetayTestTumAylar"
 union
 select * from "MEMOBI_DM"."ProtokolAmeliyatDetayTestTumAylar";	  
 	
---Klinik Araştırmalar Bulunuyor
+--Klinik Araştırmalar Bulunuyor ("MEMOBI_DM"."ProtokolKlinikDetayTestTumAylar");
 select distinct ff."SubeId" as "SubeId",f."SubeId" as "ProtokolSubeId",f."ProtokolId",ff."FaturaId",'P_KLINIK' as "Tip",cast (now() AS timestamp) AS "ETLDate"
 from "MEMOBI_DWH"."FCTProtokol" f
 inner join "MEMOBI_DM"."DM_FaturaRaporTablosuDetay" ff on f."ProtokolIslemTutarId"::varchar =ff."ProtokolIslemTutarId"::varchar
@@ -51,7 +51,7 @@ case WHEN "ff"."SubeId" = "ss1"."SubeId" THEN "ss1"."UstId" ELSE null END = case
 	where ff."FaturaRaporTarihiId"  >= 20240101
 	     and not exists (select * from "MEMOBI_DM"."ProtokolAmeliyatCheckupKlinikDetayTestTumAylar" a where a."ProtokolId"=f."ProtokolId" and a."SubeId"=ff."SubeId"and a."FaturaId"=ff."FaturaId")
 
---ProtokolAllDetayCiro
+--ProtokolAllDetayCiro ("MEMOBI_DM"."ProtokolAllDetayCiroTumAylar")
 with cte as
 (SELECT "a10"."SubeId" as "SubeId",
 	        "a30"."SubeUstAdi" AS "SubeUstAdi", 
@@ -89,9 +89,8 @@ with cte as
 	inner JOIN "MEMOBI_DWH"."DIMBolumUst" "a25" on "a25"."BolumUstId" = a24."BolumUstId"
 	left join "MEMOBI_DM"."DM_XLS_Kurum" "a26" on "a26"."KurumId" = "a11"."BaskinKurumId" and "a26"."KaynakSys" = 0
 	left join "MEMOBI_DM"."DM_XLS_Kurum" "a27" on "a27"."KurumId" = "a10"."KurumId" and "a27"."KaynakSys" = 0
-	WHERE "a11"."SubeId" NOT IN (3,36) 
-		   and "a10"."FaturaRaporTarihiId" >=20240101 
-	union 
+	WHERE "a11"."SubeId" NOT IN (3,36) 		   
+	union all
 	SELECT "a10"."SubeId" as "SubeId",
 	        "a30"."SubeUstAdi" AS "SubeUstAdi", 
 		    "a2"."Yil" as "FaturaYil", 
@@ -130,13 +129,12 @@ with cte as
 	left join "MEMOBI_DM"."DM_XLS_Kurum" "a27" on "a27"."KurumId" = "a10"."KurumId" and "a27"."KaynakSys" = 0
 	WHERE "a11"."SubeId" NOT IN (3,36) 
 		   and "a10"."CariId" = (14944) 
-		   and "a10"."FaturaRaporTarihiId" >=20240101 
 )	 
 SELECT cte."SubeUstAdi",cte."SubeId", "FaturaYil", "FaturaAyNo", "FaturaTarih","HastaTip","DoktorTip","BaskinKurumTipi","KurumOdemeTipi","PerformansBolum","GelisTipi","Grup","ProtokolIslemId","ProtokolId","UygulayanPersonelId",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", sum("Adet") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
 FROM cte GROUP BY "SubeUstAdi","SubeId","FaturaYil","FaturaAyNo","FaturaTarih","HastaTip","DoktorTip","BaskinKurumTipi","KurumOdemeTipi","PerformansBolum","GelisTipi","Grup","ProtokolIslemId","ProtokolId","UygulayanPersonelId"
 
 
----ProtokolAmeliyatCheckupKlinikDetayCiro
+---ProtokolAmeliyatCheckupKlinikDetayCiro ("MEMOBI_DM"."ProtokolAmeliyatCheckupKlinikDetayCiroTumAylar")
 	with cte as
 	(SELECT "a10"."SubeId" as "SubeId",
 	        "a30"."SubeUstAdi" AS "SubeUstAdi", 
@@ -178,8 +176,7 @@ FROM cte GROUP BY "SubeUstAdi","SubeId","FaturaYil","FaturaAyNo","FaturaTarih","
 	left join "MEMOBI_DM"."DM_XLS_Kurum" "a26" on "a26"."KurumId" = "a11"."BaskinKurumId" and "a26"."KaynakSys" = 0
 	left join "MEMOBI_DM"."DM_XLS_Kurum" "a27" on "a27"."KurumId" = "a10"."KurumId" and "a27"."KaynakSys" = 0
 	WHERE "a11"."SubeId" NOT IN (3,36)	
-           and "a10"."FaturaRaporTarihiId" >=20240101 	
-	union 
+	union all
 	SELECT "a10"."SubeId" as "SubeId",
 	        "a30"."SubeUstAdi" AS "SubeUstAdi", 
 		    "a2"."Yil" as "FaturaYil", 
@@ -219,13 +216,14 @@ FROM cte GROUP BY "SubeUstAdi","SubeId","FaturaYil","FaturaAyNo","FaturaTarih","
 	inner JOIN "MEMOBI_DWH"."DIMBolumUst" "a25" on "a25"."BolumUstId" = a24."BolumUstId"
 	left join "MEMOBI_DM"."DM_XLS_Kurum" "a26" on "a26"."KurumId" = "a11"."BaskinKurumId" and "a26"."KaynakSys" = 0
 	left join "MEMOBI_DM"."DM_XLS_Kurum" "a27" on "a27"."KurumId" = "a10"."KurumId" and "a27"."KaynakSys" = 0
-	WHERE "a11"."SubeId" NOT IN (3,36)  and "a10"."CariId" = (14944) and "a10"."FaturaRaporTarihiId" >=20240101 		
+	WHERE "a11"."SubeId" NOT IN (3,36)  
+	       and "a10"."CariId" = (14944) 
 	)	 
 	SELECT cte."SubeUstAdi",cte."SubeId","FaturaYil", "FaturaAyNo", "FaturaTarih","HastaTip","DoktorTip","BaskinKurumTipi","KurumOdemeTipi","PerformansBolum","GelisTipi","Grup","ProtokolIslemId","ProtokolId","DoktorId","GrupProtokolIslem","IslemTarihiId","Protokolgunlukuniq",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", sum("Adet") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
 	FROM cte GROUP BY "SubeUstAdi","SubeId","FaturaYil","FaturaAyNo","FaturaTarih","HastaTip","DoktorTip","BaskinKurumTipi","KurumOdemeTipi","PerformansBolum","GelisTipi","Grup","ProtokolIslemId","ProtokolId","DoktorId","GrupProtokolIslem","IslemTarihiId","Protokolgunlukuniq"
 
 
---Islem sayısı Checkup-Klinik araştırma
+--Islem sayısı Checkup-Klinik araştırma ("MEMOBI_DM"."ProtokolCheckupKlinikAdetRaporTumAylar")
 	with cte as
 	(
 	select
@@ -249,7 +247,7 @@ FROM cte GROUP BY "SubeUstAdi","SubeId","FaturaYil","FaturaAyNo","FaturaTarih","
 	SELECT cte."SubeUstAdi", cte."SubeId","FaturaYil","FaturaAyNo","HastaTip","DoktorTip","BaskinKurumTipi","PerformansBolum","GelisTipi","Grup",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", count(distinct "ProtokolId") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
 	FROM cte
 	GROUP BY "SubeUstAdi","SubeId","FaturaYil","FaturaAyNo","HastaTip","DoktorTip","BaskinKurumTipi","PerformansBolum","GelisTipi","Grup";	
---Islem Sayısı Ameliyat
+--Islem Sayısı Ameliyat ("MEMOBI_DM"."ProtokolAmeliyatAdetRaporTumAylar")
 with cte as
 	(
 	select 
@@ -274,7 +272,7 @@ with cte as
 	SELECT cte."SubeUstAdi", cte."SubeId","FaturaYil","FaturaAyNo","HastaTip","DoktorTip","BaskinKurumTipi","PerformansBolum","GelisTipi","Grup",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar",count(Distinct"Protokolgunlukuniq")  AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
 	FROM cte
 	GROUP BY "SubeUstAdi","SubeId","FaturaYil","FaturaAyNo","HastaTip","DoktorTip","BaskinKurumTipi","PerformansBolum","GelisTipi","Grup";	
---Islem Sayısı Hizmetler
+--Islem Sayısı Hizmetler ("MEMOBI_DM"."ProtokolAllAdetRaporTumAylar")
 with cte as
 	(
 	SELECT
@@ -298,7 +296,7 @@ with cte as
 	)	
 	SELECT cte."SubeUstAdi", cte."SubeId","FaturaYil", "FaturaAyNo","HastaTip","DoktorTip","BaskinKurumTipi","PerformansBolum","GelisTipi","Grup",sum(cte."FaturaKdvsizTutar") AS "FaturaKdvsizTutar", sum("Adet") AS "Adet" ,cast (now() AS timestamp) AS "ETLDate"
 	FROM cte GROUP BY "SubeUstAdi","SubeId","FaturaYil","FaturaAyNo","HastaTip","DoktorTip","BaskinKurumTipi","PerformansBolum","GelisTipi","Grup";
----Doktor Adet
+---Doktor Adet ("MEMOBI_DM"."ProtokolAllDoktorRaporTumAylar")
 with cte as
 (	select  ff."SubeId" as "SubeId","a30"."SubeUstAdi" AS "SubeUstAdi",d."PersonelBirlesimId","a2"."Yil" as "FaturaYil","a2"."Yilay" as "FaturaAyNo","a25"."BolumUstAdi" as "UygulayanBolum",d."CalismaTipiId"
 	from "MEMOBI_DWH"."FCTProtokol" f
@@ -319,7 +317,7 @@ SELECT cte."SubeUstAdi", cte."SubeId","FaturaYil", "FaturaAyNo","UygulayanBolum"
 FROM cte 
 GROUP BY "SubeUstAdi","SubeId","FaturaYil","FaturaAyNo","UygulayanBolum","CalismaTipiId" ;
 
---Gelir Data	
+--Gelir Data ("MEMOBI_DM"."DM_McKinseyGelirDataDevTumAylar")
 select
 "SubeId",
 "SubeUstAdi", 
