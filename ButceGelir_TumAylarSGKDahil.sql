@@ -1,3 +1,4 @@
+
 --Ameliyat protokollerini Bul: ("MEMOBI_DM"."ProtokolAmeliyatDetayTestTumAylar")
 select distinct ff."SubeId" as "SubeId",f."SubeId" as "ProtokolSubeId",f."ProtokolId",ff."FaturaId",'P_AMELIYATLAR' as "Tip",cast (now() AS timestamp) AS "ETLDate"
 from "MEMOBI_DWH"."FCTProtokol" f
@@ -7,7 +8,19 @@ JOIN "MEMOBI_ODS_MRKZ"."Sube_Mapping" "ss2" ON "ss2"."SubeId" = "f"."SubeId" AND
 case WHEN "ff"."SubeId" = "ss1"."SubeId" THEN "ss1"."UstId" ELSE null END = case WHEN "f"."SubeId" = "ss2"."SubeId" THEN "ss2"."UstId" ELSE null END
 left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("f"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
 where ff."FaturaRaporTarihiId"  >= 20240101
-     and "a12"."Grup" = 'AMELİYATLAR';
+     and "a12"."Grup" = 'AMELİYATLAR'
+union all
+select distinct ff."SubeId" as "SubeId",f."SubeId" as "ProtokolSubeId",f."ProtokolId",ff."FaturaId",'P_AMELIYATLAR' as "Tip",cast (now() AS timestamp) AS "ETLDate"
+from "MEMOBI_DWH"."FCTProtokol" f
+inner join "MEMOBI_DM"."DM_FaturaRaporTablosuDetay_SGKDahil" ff on f."ProtokolIslemTutarId"::varchar =ff."ProtokolIslemTutarId"::varchar
+JOIN "MEMOBI_ODS_MRKZ"."Sube_Mapping" "ss1" ON "ss1"."SubeId" = "ff"."SubeId"
+JOIN "MEMOBI_ODS_MRKZ"."Sube_Mapping" "ss2" ON "ss2"."SubeId" = "f"."SubeId" AND
+case WHEN "ff"."SubeId" = "ss1"."SubeId" THEN "ss1"."UstId" ELSE null END = case WHEN "f"."SubeId" = "ss2"."SubeId" THEN "ss2"."UstId" ELSE null END
+left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("f"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
+where ff."FaturaRaporTarihiId"  >= 20240101
+     and "a12"."Grup" = 'AMELİYATLAR'
+	 and "ff"."CariId" = (14944) 
+	 ;
 	----------------------------------------------------------------------------------------------------------------------------------------------
 
 --CheckUp protokollerini Bul: ("MEMOBI_DM"."ProtokolCheckupDetayTestTumAylar")
@@ -20,13 +33,26 @@ case WHEN "ff"."SubeId" = "ss1"."SubeId" THEN "ss1"."UstId" ELSE null END = case
 left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("f"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
 where ff."FaturaRaporTarihiId"  >= 20240101
 	  and "a12"."Grup" = 'CHECK UP'
-	  and not exists (select * from "MEMOBI_DM"."ProtokolAmeliyatDetayTestTumAylar" a where a."ProtokolId"=f."ProtokolId" and a."SubeId"=ff."SubeId" and a."FaturaId"=ff."FaturaId");
+	  and not exists (select * from "MEMOBI_DM"."ProtokolAmeliyatDetayTestTumAylar" a where a."ProtokolId"=f."ProtokolId" and a."SubeId"=ff."SubeId" and a."FaturaId"=ff."FaturaId")
+union all
+select distinct ff."SubeId" as "SubeId",f."SubeId" as "ProtokolSubeId",f."ProtokolId",ff."FaturaId",'P_CHECKUP' as "Tip",cast (now() AS timestamp) AS "ETLDate"	
+from "MEMOBI_DWH"."FCTProtokol" f
+inner join "MEMOBI_DM"."DM_FaturaRaporTablosuDetay_SGKDahil" ff on f."ProtokolIslemTutarId"::varchar =ff."ProtokolIslemTutarId"::varchar
+JOIN "MEMOBI_ODS_MRKZ"."Sube_Mapping" "ss1" ON "ss1"."SubeId" = "ff"."SubeId"
+JOIN "MEMOBI_ODS_MRKZ"."Sube_Mapping" "ss2" ON "ss2"."SubeId" = "f"."SubeId" AND
+case WHEN "ff"."SubeId" = "ss1"."SubeId" THEN "ss1"."UstId" ELSE null END = case WHEN "f"."SubeId" = "ss2"."SubeId" THEN "ss2"."UstId" ELSE null END
+left outer JOIN "MEMOBI_DWH"."DIMHizmetMalzeme" "a12" ON ("f"."HizmetMalzemeId" = "a12"."HizmetMalzemeUId") 
+where ff."FaturaRaporTarihiId"  >= 20240101
+	  and "a12"."Grup" = 'CHECK UP'
+	  and "ff"."CariId" = (14944) 
+	  and not exists (select * from "MEMOBI_DM"."ProtokolAmeliyatDetayTestTumAylar" a where a."ProtokolId"=f."ProtokolId" and a."SubeId"=ff."SubeId" and a."FaturaId"=ff."FaturaId")
 	----------------------------------------------------------------------------------------------------------------------------------------------	  
+
 
 --Ameliyat ve Checkuplar Birleştiriliyor ("MEMOBI_DM"."ProtokolAmeliyatCheckupDetayTestTumAylar")
 select * from "MEMOBI_DM"."ProtokolCheckupDetayTestTumAylar"
 union
-select * from "MEMOBI_DM"."ProtokolAmeliyatDetayTestTumAylar";	  
+select * from "MEMOBI_DM"."ProtokolAmeliyatDetayTestTumAylar"
 	----------------------------------------------------------------------------------------------------------------------------------------------	
 
 --Klinik Araştırmalar Bulunuyor ("MEMOBI_DM"."ProtokolKlinikDetayTestTumAylar");
@@ -38,13 +64,25 @@ JOIN "MEMOBI_ODS_MRKZ"."Sube_Mapping" "ss2" ON "ss2"."SubeId" = "f"."SubeId" AND
 case WHEN "ff"."SubeId" = "ss1"."SubeId" THEN "ss1"."UstId" ELSE null END = case WHEN "f"."SubeId" = "ss2"."SubeId" THEN "ss2"."UstId" ELSE null END
 where ff."FaturaRaporTarihiId"  >= 20240101
 	  and "ff"."AltKurumId"=10064
-	  and not exists (select * from "MEMOBI_DM"."ProtokolAmeliyatCheckupDetayTestTumAylar" a where a."ProtokolId"=f."ProtokolId" and a."SubeId"=ff."SubeId"and a."FaturaId"=ff."FaturaId");
+	  and not exists (select * from "MEMOBI_DM"."ProtokolAmeliyatCheckupDetayTestTumAylar" a where a."ProtokolId"=f."ProtokolId" and a."SubeId"=ff."SubeId"and a."FaturaId"=ff."FaturaId")
+union all 
+select distinct ff."SubeId" as "SubeId",f."SubeId" as "ProtokolSubeId",f."ProtokolId",ff."FaturaId",'P_KLINIK' as "Tip",cast (now() AS timestamp) AS "ETLDate"
+from "MEMOBI_DWH"."FCTProtokol" f
+inner join "MEMOBI_DM"."DM_FaturaRaporTablosuDetay_SGKDahil" ff on f."ProtokolIslemTutarId"::varchar =ff."ProtokolIslemTutarId"::varchar
+JOIN "MEMOBI_ODS_MRKZ"."Sube_Mapping" "ss1" ON "ss1"."SubeId" = "ff"."SubeId"
+JOIN "MEMOBI_ODS_MRKZ"."Sube_Mapping" "ss2" ON "ss2"."SubeId" = "f"."SubeId" AND
+case WHEN "ff"."SubeId" = "ss1"."SubeId" THEN "ss1"."UstId" ELSE null END = case WHEN "f"."SubeId" = "ss2"."SubeId" THEN "ss2"."UstId" ELSE null END
+where ff."FaturaRaporTarihiId"  >= 20240101
+	  and "ff"."AltKurumId"=10064
+	  and "ff"."CariId" = (14944) 
+	  and not exists (select * from "MEMOBI_DM"."ProtokolAmeliyatCheckupDetayTestTumAylar" a where a."ProtokolId"=f."ProtokolId" and a."SubeId"=ff."SubeId"and a."FaturaId"=ff."FaturaId")
+
 	----------------------------------------------------------------------------------------------------------------------------------------------
 
 --Ameliyat,Checkup ve Klinik Araştırmalar Birleştiriliyor ("MEMOBI_DM"."ProtokolAmeliyatCheckupKlinikDetayTestTumAylar")	  
 select * from "MEMOBI_DM"."ProtokolKlinikDetayTestTumAylar"
 union
-select * from "MEMOBI_DM"."ProtokolAmeliyatCheckupDetayTestTumAylar";	
+select * from "MEMOBI_DM"."ProtokolAmeliyatCheckupDetayTestTumAylar"
 	----------------------------------------------------------------------------------------------------------------------------------------------
 
 --ProtokolAll
@@ -55,7 +93,17 @@ JOIN "MEMOBI_ODS_MRKZ"."Sube_Mapping" "ss1" ON "ss1"."SubeId" = "ff"."SubeId"
 JOIN "MEMOBI_ODS_MRKZ"."Sube_Mapping" "ss2" ON "ss2"."SubeId" = "f"."SubeId" AND
 case WHEN "ff"."SubeId" = "ss1"."SubeId" THEN "ss1"."UstId" ELSE null END = case WHEN "f"."SubeId" = "ss2"."SubeId" THEN "ss2"."UstId" ELSE null END
 	where ff."FaturaRaporTarihiId"  >= 20240101
-	     and not exists (select * from "MEMOBI_DM"."ProtokolAmeliyatCheckupKlinikDetayTestTumAylar" a where a."ProtokolId"=f."ProtokolId" and a."SubeId"=ff."SubeId"and a."FaturaId"=ff."FaturaId")
+	     and not exists (select * from "MEMOBI_DM"."ProtokolAmeliyatCheckupKlinikDetayTestTumAylar" a where a."ProtokolId"=f."ProtokolId" and a."SubeId"=ff."SubeId"and a."FaturaId"=ff."FaturaId")		 
+union all 
+select distinct ff."SubeId" as "SubeId",f."SubeId" as "ProtokolSubeId",f."ProtokolId",ff."FaturaId",'P_HIZMET_GRUPLARI' as "Tip",cast (now() AS timestamp) AS "ETLDate"	
+from "MEMOBI_DWH"."FCTProtokol" f
+inner join "MEMOBI_DM"."DM_FaturaRaporTablosuDetay_SGKDahil" ff on f."ProtokolIslemTutarId"::varchar =ff."ProtokolIslemTutarId"::varchar
+JOIN "MEMOBI_ODS_MRKZ"."Sube_Mapping" "ss1" ON "ss1"."SubeId" = "ff"."SubeId"
+JOIN "MEMOBI_ODS_MRKZ"."Sube_Mapping" "ss2" ON "ss2"."SubeId" = "f"."SubeId" AND
+case WHEN "ff"."SubeId" = "ss1"."SubeId" THEN "ss1"."UstId" ELSE null END = case WHEN "f"."SubeId" = "ss2"."SubeId" THEN "ss2"."UstId" ELSE null END
+	where ff."FaturaRaporTarihiId"  >= 20240101
+	      and "ff"."CariId" = (14944) 
+	      and not exists (select * from "MEMOBI_DM"."ProtokolAmeliyatCheckupKlinikDetayTestTumAylar" a where a."ProtokolId"=f."ProtokolId" and a."SubeId"=ff."SubeId"and a."FaturaId"=ff."FaturaId")		 		 
 	----------------------------------------------------------------------------------------------------------------------------------------------
 
 --ProtokolAllDetayCiro ("MEMOBI_DM"."ProtokolAllDetayCiroTumAylar")
@@ -324,11 +372,28 @@ with cte as
 	inner JOIN "MEMOBI_DWH"."DIMBolumUst" "a25" on "a25"."BolumUstId" = a24."BolumUstId"
 	inner join "MEMOBI_DWH"."VW_DIMDoktor" d on d."PersonelId"=f."UygulayanPersonelId" 
 	inner join "MEMOBI_DWH"."VW_DIMPersonelBirlesim" "a115"  on ("d"."PersonelBirlesimId" = "a115"."PersonelId")
-	where ff."FaturaRaporTarihiId"  >= 20240101 
+	where ff."FaturaRaporTarihiId"  >= 20240101
+	union all
+	select  ff."SubeId" as "SubeId","a30"."SubeUstAdi" AS "SubeUstAdi",d."PersonelBirlesimId","a2"."Yil" as "FaturaYil","a2"."Yilay" as "FaturaAyNo","a25"."BolumUstAdi" as "UygulayanBolum",d."CalismaTipiId"
+	from "MEMOBI_DWH"."FCTProtokol" f
+	inner join "MEMOBI_DM"."DM_FaturaRaporTablosuDetay_SGKDahil" ff on f."ProtokolIslemTutarId"::varchar =ff."ProtokolIslemTutarId"::varchar
+	JOIN "MEMOBI_ODS_MRKZ"."Sube_Mapping" "ss1" ON "ss1"."SubeId" = "ff"."SubeId"
+	JOIN "MEMOBI_ODS_MRKZ"."Sube_Mapping" "ss2" ON "ss2"."SubeId" = "f"."SubeId" AND
+	case WHEN "ff"."SubeId" = "ss1"."SubeId" THEN "ss1"."UstId" ELSE null END = case WHEN "f"."SubeId" = "ss2"."SubeId" THEN "ss2"."UstId" ELSE null end
+	JOIN "MEMOBI_DWH"."DIMTarih" "a2" ON ( "ff"."FaturaRaporTarihiId" = "a2"."TarihId") 
+	LEFT outer JOIN "MEMOBI_DWH"."DIMSube" "a20" ON ("ff"."SubeId" = "a20"."SubeId")
+	LEFT outer JOIN "MEMOBI_DWH"."DIMSubeUst" "a30" ON ("a20"."SubeUstId" = "a30"."SubeUstId")
+	inner JOIN "MEMOBI_DWH"."DIMBolumMapping" "a24" on "a24"."BolumId" = f."UygulayanBolumId" 
+	inner JOIN "MEMOBI_DWH"."DIMBolumUst" "a25" on "a25"."BolumUstId" = a24."BolumUstId"
+	inner join "MEMOBI_DWH"."VW_DIMDoktor" d on d."PersonelId"=f."UygulayanPersonelId" 
+	inner join "MEMOBI_DWH"."VW_DIMPersonelBirlesim" "a115"  on ("d"."PersonelBirlesimId" = "a115"."PersonelId")
+	where ff."FaturaRaporTarihiId"  >= 20240101
+	      and ff."CariId" = (14944) 
+	
 	)	
 SELECT cte."SubeUstAdi", cte."SubeId","FaturaYil", "FaturaAyNo","UygulayanBolum","CalismaTipiId", Count(distinct "PersonelBirlesimId") AS "DoktorSayisi" ,cast (now() AS timestamp) AS "ETLDate"
 FROM cte 
-GROUP BY "SubeUstAdi","SubeId","FaturaYil","FaturaAyNo","UygulayanBolum","CalismaTipiId" ;
+GROUP BY "SubeUstAdi","SubeId","FaturaYil","FaturaAyNo","UygulayanBolum","CalismaTipiId" 
 	----------------------------------------------------------------------------------------------------------------------------------------------
 
 --Gelir Data ("MEMOBI_DM"."DM_McKinseyGelirDataDevTumAylar")

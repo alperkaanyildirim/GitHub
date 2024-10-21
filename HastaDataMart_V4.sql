@@ -774,7 +774,7 @@ FROM "FCTProtokol" FP
 LEFT JOIN "MEMOBI_DWH"."DIMHastaCurrent" HC on HC."HastaId" = FP."HastaMerkezId"
 LEFT JOIN "MEMOBI_DM"."DM_HastaDataMartTarih" T ON 1=1 
 LEFT JOIN "MEMOBI_DM"."DM_DovizKuru" GK ON cast(GK."Tarih" AS Date)= cast(FP."IslemTarihi" AS date) AND GK."ParaBirimiId" = 2 
-where case when FP."PState"<>0 and FP."PIState">1 and FP."PITState"<>0 then 1 else 0 end = 1
+where case when FP."PState"<>0 and FP."PIState">1 and FP."PITState"<>0 then 1 else 0 end = 1 and FP."KurumTipiId" <> 4
 GROUP BY HC."HastaMerkezId",cast(FP."IslemTarihi" AS date),GK."DovizAlis"
 ) 
 SELECT "HastaMerkezId",
