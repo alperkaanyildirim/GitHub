@@ -745,7 +745,7 @@ group by
 "KurumOdemeTipi", 
 "PerformansBolum", 
 "GelisTipi", 
-"Grup";
+"Grup"
 	
 	
 
