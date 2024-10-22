@@ -1,4 +1,3 @@
---FGO ISTANBUL SUBELERI
 SET enable_nestloop TO off;
 
 select distinct "SubeId","SubeAdi","Gruplama","Tarih","BolumAdi","ProtokolId",
@@ -165,4 +164,38 @@ where case when "a12"."PState"<>0 and "a12"."PIState">1 and "a12"."PITState"<>0 
 	   and "a11"."KaynakSys" = 0 --Pusula
 group by "a11"."SubeId",to_date("a11"."FaturaRaporTarihiId"::text, 'YYYYMMDD'),"a20"."SubeAdi","a14"."KurumId","a19"."BolumAdi","a20"."SubeUstId","a22"."ProtokolId"
 ) YY
+group by YY."SubeId",YY."SubeAdi",YY."Gruplama",YY."Tarih",YY."BolumAdi",YY."ProtokolId"
+
+------------------------------------
+--Herşeyden bağımsız Ameliyat Fatura Toplamları
+SET enable_nestloop TO off;
+
+select distinct "SubeId","SubeAdi","Gruplama","Tarih","BolumAdi","ProtokolId",
+		ROUND(SUM("FaturaToplam"),2) as "FaturaToplam"		
+from
+(select "a11"."SubeId",
+       "a20"."SubeAdi",
+		--7001,13650 --ÜCRETLİ, 18782 --SGK ÜCRETLİ,18741 --SGK MO2,19226--SGK MO2 O.U 7121 --MO-2 13657 --MO2 OU	    
+		case when coalesce("a14"."KurumId",0) in (0,7001,13650,18782) then 'Cari' else 'MO-2' end as "Gruplama",
+		to_date("a11"."FaturaRaporTarihiId"::text, 'YYYYMMDD') as "Tarih",
+		"a19"."BolumAdi",
+		"a22"."ProtokolId",
+		SUM("a11"."KDVliTutar") as "FaturaToplam"
+from "MEMOBI_DM"."VW_ProtokolAmeliyat" "a22"
+inner join "MEMOBI_ODS_HBYS"."Finans_Fatura" "a66" on "a66"."ProtokolId" = "a22"."ProtokolId" and "a66"."SubeId" = a22."SubeId" 
+left join "MEMOBI_DM"."DM_FaturaRaporTablosuDetay" "a11" on "a11"."SubeId" = "a22"."SubeId" and "a11"."ProtokolId" = "a22"."ProtokolId" and "a11"."FaturaId" = "a66"."Id" and a66."State" = 1
+left join "MEMOBI_DWH"."FCTProtokol" "a12" on 	("a11"."KaynakSys" = "a12"."KaynakSys" and "a11"."ProtokolIslemTutarId" = "a12"."ProtokolIslemTutarId" and "a11"."SubeId" = "a12"."SubeId")
+left join "MEMOBI_DM"."DM_XLS_Kurum" "a14" on "a14"."KurumId" = "a12"."BaskinKurumId" and "a14"."KaynakSys" = "a12"."KaynakSys" 
+left join "MEMOBI_DWH"."DIMBolumMapping" "a18" on ("a12"."BolumId" = "a18"."BolumId")
+left join "MEMOBI_DWH"."DIMBolum" "a19" on 	("a19"."BolumId" = "a18"."BolumId")
+left join "MEMOBI_DWH"."DIMSube" "a20" on	("a20"."SubeId" = "a11"."SubeId") 
+where case when "a12"."PState"<>0 and "a12"."PIState">1 and "a12"."PITState"<>0 then 1 else 0 end = 1
+		and "a11"."FaturaRaporTarihiId" >=20240101
+	   and "a11"."SubeId" in (105,23,158,7)
+	   and "a12"."IndirimGrubuId" = 0
+	   and ("a14"."KurumId" in (7001,13650,18782,18741,19226,7121,13657) or "a14"."KurumId" is null)
+	   and "a11"."Uyruk" = 'Yerli'
+	   and "a11"."KaynakSys" = 0 --Pusula
+group by "a11"."SubeId",to_date("a11"."FaturaRaporTarihiId"::text, 'YYYYMMDD'),"a20"."SubeAdi","a14"."KurumId","a19"."BolumAdi","a20"."SubeUstId","a22"."ProtokolId"
+)YY
 group by YY."SubeId",YY."SubeAdi",YY."Gruplama",YY."Tarih",YY."BolumAdi",YY."ProtokolId"
