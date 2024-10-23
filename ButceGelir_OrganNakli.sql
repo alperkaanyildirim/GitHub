@@ -54,6 +54,8 @@ where ff."FaturaRaporTarihiId"  >= 20240101
      and not exists (select * from "MEMOBI_DM"."ProtokolOrganNakliDetayTest_ON" a where a."ProtokolId"=f."ProtokolId" and a."SubeId"=ff."SubeId" and a."FaturaId"=ff."FaturaId");
      --and "ff"."SubeId" = 158;
      --and ff."FaturaId" in (1351750,1374208);
+	 
+	 
  	drop table IF exists "MEMOBI_DM"."ProtokolONAmeliyatDetayTest_ON";	 
 	create table "MEMOBI_DM"."ProtokolONAmeliyatDetayTest_ON"
 	as
